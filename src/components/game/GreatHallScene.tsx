@@ -665,22 +665,6 @@ export default function GreatHallScene() {
         <boxGeometry args={[0.4, wallH, hd * 2]} />
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
-      {/* Stone coursing lines on side walls */}
-      {Array.from({ length: 10 }, (_, i) => {
-        const y = 0.8 + i * 1;
-        return (
-          <group key={`course-${i}`}>
-            <mesh position={[-hw + 0.01, y, 0]}>
-              <boxGeometry args={[0.02, 0.03, hd * 2]} />
-              <meshStandardMaterial color="#5a4a38" roughness={1} />
-            </mesh>
-            <mesh position={[hw - 0.01, y, 0]}>
-              <boxGeometry args={[0.02, 0.03, hd * 2]} />
-              <meshStandardMaterial color="#5a4a38" roughness={1} />
-            </mesh>
-          </group>
-        );
-      })}
       {/* Wall wainscoting / lower wood paneling */}
       <mesh position={[-hw + 0.15, 1.2, 0]}>
         <boxGeometry args={[0.12, 2.4, hd * 2 - 1]} />
@@ -899,17 +883,6 @@ export default function GreatHallScene() {
         <WallTorch position={[-3.3, 7, -0.4]} rotation={[0, Math.PI, 0]} />
         <WallTorch position={[3.3, 7, -0.4]} rotation={[0, Math.PI, 0]} />
 
-        {/* ── Stone coursing lines on flanking wall sections ── */}
-        {[-8, -6.5, 6.5, 8].map((x, i) => (
-          <group key={`sblock-${i}`}>
-            {Array.from({ length: 8 }, (_, j) => (
-              <mesh key={j} position={[x, 0.6 + j * 1.2, -0.15]}>
-                <boxGeometry args={[1.5, 0.04, 0.1]} />
-                <meshStandardMaterial color="#5a4a38" roughness={1} />
-              </mesh>
-            ))}
-          </group>
-        ))}
       </group>
 
       {/* ═══ Floating Candles ═══ */}
