@@ -184,7 +184,7 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
 
   useFrame(({ clock }) => {
     if (lightRef.current) {
-      lightRef.current.intensity = 2.5 + Math.sin(clock.getElapsedTime() * 0.3) * 0.8;
+      lightRef.current.intensity = 2 + Math.sin(clock.getElapsedTime() * 0.3) * 0.5;
     }
   });
 
@@ -192,10 +192,10 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
     const arr: { x: number; y: number; size: number; brightness: number }[] = [];
     let s = 9999;
     const rng = () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 30; i++) {
       arr.push({
         x: (rng() - 0.5) * 5.5,
-        y: (rng() - 0.5) * 9,
+        y: (rng() - 0.5) * 8,
         size: 0.02 + rng() * 0.03,
         brightness: 0.5 + rng() * 0.5,
       });
@@ -203,285 +203,97 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
     return arr;
   }, []);
 
-  // Lead came grid colors
-  const leadColor = "#2a2218";
-  const stoneColor = "#5a4a3a";
-  const stoneLight = "#6a5a48";
-
   return (
     <group position={position}>
-      {/* ── Night sky backdrop ── */}
+      {/* ── Night sky backdrop — IN FRONT of wall, facing player (+z) ── */}
       <group position={[0, 0.5, 0.2]}>
+        {/* Deep sky */}
         <mesh>
-          <planeGeometry args={[7, 11]} />
-          <meshBasicMaterial color="#0a1228" side={THREE.DoubleSide} />
+          <planeGeometry args={[6.5, 10]} />
+          <meshBasicMaterial color="#0c1a3a" side={THREE.DoubleSide} />
         </mesh>
-        <mesh position={[0, 3, 0.01]}>
-          <planeGeometry args={[7, 4]} />
-          <meshBasicMaterial color="#101d40" transparent opacity={0.6} side={THREE.DoubleSide} />
+        {/* Upper gradient */}
+        <mesh position={[0, 2.5, 0.01]}>
+          <planeGeometry args={[6.5, 4]} />
+          <meshBasicMaterial color="#132850" transparent opacity={0.6} side={THREE.DoubleSide} />
         </mesh>
+        {/* Stars */}
         {stars.map((star, i) => (
           <mesh key={i} position={[star.x, star.y, 0.02]}>
             <circleGeometry args={[star.size, 6]} />
             <meshBasicMaterial color="#ffffff" transparent opacity={star.brightness} side={THREE.DoubleSide} />
           </mesh>
         ))}
-        <mesh position={[1.5, 3.5, 0.03]}>
+        {/* Moon */}
+        <mesh position={[1.5, 3, 0.03]}>
           <circleGeometry args={[0.3, 24]} />
           <meshBasicMaterial color="#e8eeff" side={THREE.DoubleSide} />
         </mesh>
-        <mesh position={[1.5, 3.5, 0.025]}>
+        <mesh position={[1.5, 3, 0.025]}>
           <circleGeometry args={[0.5, 24]} />
-          <meshBasicMaterial color="#8899cc" transparent opacity={0.15} side={THREE.DoubleSide} />
+          <meshBasicMaterial color="#8899cc" transparent opacity={0.2} side={THREE.DoubleSide} />
+        </mesh>
+        {/* Wispy clouds */}
+        <mesh position={[-0.5, 1, 0.03]}>
+          <planeGeometry args={[2.5, 0.4]} />
+          <meshBasicMaterial color="#1a2a55" transparent opacity={0.3} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[1, -1, 0.03]}>
+          <planeGeometry args={[2, 0.3]} />
+          <meshBasicMaterial color="#1e2e58" transparent opacity={0.25} side={THREE.DoubleSide} />
         </mesh>
       </group>
 
-      {/* ── Outer stone surround — deep beveled frame ── */}
-      <mesh position={[0, 0, -0.1]}>
-        <boxGeometry args={[7.8, 11.8, 0.3]} />
-        <meshStandardMaterial color="#4a3a2a" roughness={0.95} />
-      </mesh>
-      {/* Inner stone frame */}
+      {/* Window frame - pointed gothic arch shape */}
       <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[7.2, 11.2, 0.3]} />
-        <meshStandardMaterial color={stoneColor} roughness={0.92} />
+        <boxGeometry args={[7, 11, 0.3]} />
+        <meshStandardMaterial color="#5a4a3a" roughness={0.9} />
       </mesh>
-
-      {/* ── Three lancet (tall pointed) panels ── */}
-      {/* Left lancet */}
-      <group position={[-2.2, -0.5, 0.1]}>
-        {/* Glass base */}
-        <mesh>
-          <planeGeometry args={[1.6, 8]} />
-          <meshBasicMaterial color="#1a2255" transparent opacity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Colored glass sections — bottom to top */}
-        <mesh position={[0, -3, 0.01]}>
-          <planeGeometry args={[1.5, 1.8]} />
-          <meshBasicMaterial color="#8b1a1a" transparent opacity={0.45} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, -1.2, 0.01]}>
-          <planeGeometry args={[1.5, 1.6]} />
-          <meshBasicMaterial color="#cc3322" transparent opacity={0.35} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0.5, 0.01]}>
-          <planeGeometry args={[1.5, 1.8]} />
-          <meshBasicMaterial color="#ddaa22" transparent opacity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 2.2, 0.01]}>
-          <planeGeometry args={[1.5, 1.6]} />
-          <meshBasicMaterial color="#2244aa" transparent opacity={0.35} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Lead came — horizontal */}
-        {[-3.8, -2.2, -0.5, 1.3, 3, 3.8].map((y, i) => (
-          <mesh key={`ll-h-${i}`} position={[0, y, 0.02]}>
-            <boxGeometry args={[1.7, 0.05, 0.04]} />
-            <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-          </mesh>
-        ))}
-        {/* Lead came — vertical */}
-        {[-0.75, 0, 0.75].map((x, i) => (
-          <mesh key={`ll-v-${i}`} position={[x, 0, 0.02]}>
-            <boxGeometry args={[0.05, 8, 0.04]} />
-            <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-          </mesh>
-        ))}
-        {/* Lancet stone frame */}
-        <mesh position={[-0.85, 0, 0.03]}>
-          <boxGeometry args={[0.15, 8.2, 0.08]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-        <mesh position={[0.85, 0, 0.03]}>
-          <boxGeometry args={[0.15, 8.2, 0.08]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-      </group>
-
-      {/* Center lancet — taller */}
-      <group position={[0, 0, 0.1]}>
-        <mesh>
-          <planeGeometry args={[1.8, 9]} />
-          <meshBasicMaterial color="#152040" transparent opacity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Colored glass — figurative panels */}
-        <mesh position={[0, -3.5, 0.01]}>
-          <planeGeometry args={[1.7, 1.8]} />
-          <meshBasicMaterial color="#1a6a2a" transparent opacity={0.4} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, -1.7, 0.01]}>
-          <planeGeometry args={[1.7, 1.6]} />
-          <meshBasicMaterial color="#8b1a1a" transparent opacity={0.4} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0, 0.01]}>
-          <planeGeometry args={[1.7, 1.8]} />
-          <meshBasicMaterial color="#ddaa22" transparent opacity={0.35} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 1.7, 0.01]}>
-          <planeGeometry args={[1.7, 1.6]} />
-          <meshBasicMaterial color="#2255bb" transparent opacity={0.35} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 3.3, 0.01]}>
-          <planeGeometry args={[1.7, 1.6]} />
-          <meshBasicMaterial color="#7722aa" transparent opacity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Central figure silhouette — gold shield */}
-        <mesh position={[0, 0, 0.02]}>
-          <circleGeometry args={[0.6, 8]} />
-          <meshStandardMaterial color="#c4a033" metalness={0.5} roughness={0.4} emissive="#c4a033" emissiveIntensity={0.2} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Inner shield detail */}
-        <mesh position={[0, 0, 0.025]}>
-          <circleGeometry args={[0.4, 4]} />
-          <meshStandardMaterial color="#8b0000" metalness={0.3} roughness={0.5} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Lead came — horizontal */}
-        {[-4.3, -2.6, -0.9, 0.8, 2.5, 4.2].map((y, i) => (
-          <mesh key={`cl-h-${i}`} position={[0, y, 0.02]}>
-            <boxGeometry args={[1.9, 0.05, 0.04]} />
-            <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-          </mesh>
-        ))}
-        {/* Lead came — vertical */}
-        {[-0.85, -0.28, 0.28, 0.85].map((x, i) => (
-          <mesh key={`cl-v-${i}`} position={[x, 0, 0.02]}>
-            <boxGeometry args={[0.05, 9, 0.04]} />
-            <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-          </mesh>
-        ))}
-        {/* Stone frame */}
-        <mesh position={[-0.95, 0, 0.03]}>
-          <boxGeometry args={[0.15, 9.2, 0.08]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-        <mesh position={[0.95, 0, 0.03]}>
-          <boxGeometry args={[0.15, 9.2, 0.08]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-      </group>
-
-      {/* Right lancet */}
-      <group position={[2.2, -0.5, 0.1]}>
-        <mesh>
-          <planeGeometry args={[1.6, 8]} />
-          <meshBasicMaterial color="#1a2255" transparent opacity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, -3, 0.01]}>
-          <planeGeometry args={[1.5, 1.8]} />
-          <meshBasicMaterial color="#1a5a3a" transparent opacity={0.4} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, -1.2, 0.01]}>
-          <planeGeometry args={[1.5, 1.6]} />
-          <meshBasicMaterial color="#2255bb" transparent opacity={0.35} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0.5, 0.01]}>
-          <planeGeometry args={[1.5, 1.8]} />
-          <meshBasicMaterial color="#ddaa22" transparent opacity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 2.2, 0.01]}>
-          <planeGeometry args={[1.5, 1.6]} />
-          <meshBasicMaterial color="#8b1a1a" transparent opacity={0.35} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Lead came */}
-        {[-3.8, -2.2, -0.5, 1.3, 3, 3.8].map((y, i) => (
-          <mesh key={`rl-h-${i}`} position={[0, y, 0.02]}>
-            <boxGeometry args={[1.7, 0.05, 0.04]} />
-            <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-          </mesh>
-        ))}
-        {[-0.75, 0, 0.75].map((x, i) => (
-          <mesh key={`rl-v-${i}`} position={[x, 0, 0.02]}>
-            <boxGeometry args={[0.05, 8, 0.04]} />
-            <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-          </mesh>
-        ))}
-        <mesh position={[-0.85, 0, 0.03]}>
-          <boxGeometry args={[0.15, 8.2, 0.08]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-        <mesh position={[0.85, 0, 0.03]}>
-          <boxGeometry args={[0.15, 8.2, 0.08]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-      </group>
-
-      {/* ── Rose window (circular) above lancets ── */}
-      <group position={[0, 5.2, 0.1]}>
-        {/* Outer ring */}
-        <mesh>
-          <torusGeometry args={[1.2, 0.12, 8, 24]} />
-          <meshStandardMaterial color={stoneLight} roughness={0.9} />
-        </mesh>
-        {/* Inner ring */}
-        <mesh>
-          <torusGeometry args={[0.7, 0.06, 8, 20]} />
-          <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-        </mesh>
-        {/* Center medallion */}
-        <mesh position={[0, 0, 0.01]}>
-          <circleGeometry args={[0.65, 24]} />
-          <meshBasicMaterial color="#ddaa22" transparent opacity={0.4} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0, 0.02]}>
-          <circleGeometry args={[0.35, 12]} />
-          <meshStandardMaterial color="#c4a033" metalness={0.5} roughness={0.4} emissive="#ddbb33" emissiveIntensity={0.3} side={THREE.DoubleSide} />
-        </mesh>
-        {/* Radial spokes */}
-        {Array.from({ length: 8 }, (_, i) => {
-          const angle = (i / 8) * Math.PI * 2;
-          return (
-            <mesh key={`spoke-${i}`} position={[Math.cos(angle) * 0.6, Math.sin(angle) * 0.6, 0.01]} rotation={[0, 0, angle]}>
-              <boxGeometry args={[0.04, 0.6, 0.04]} />
-              <meshStandardMaterial color={leadColor} roughness={0.6} metalness={0.4} />
-            </mesh>
-          );
-        })}
-        {/* Colored petals between spokes */}
-        {Array.from({ length: 8 }, (_, i) => {
-          const angle = (i / 8) * Math.PI * 2 + Math.PI / 8;
-          const colors = ["#cc3322", "#2255bb", "#1a6a2a", "#7722aa", "#cc3322", "#2255bb", "#1a6a2a", "#ddaa22"];
-          return (
-            <mesh key={`petal-${i}`} position={[Math.cos(angle) * 0.85, Math.sin(angle) * 0.85, 0.005]}>
-              <circleGeometry args={[0.22, 6]} />
-              <meshBasicMaterial color={colors[i]} transparent opacity={0.45} side={THREE.DoubleSide} />
-            </mesh>
-          );
-        })}
-        {/* Outer colored ring */}
-        <mesh position={[0, 0, -0.01]}>
-          <torusGeometry args={[1.05, 0.15, 8, 24]} />
-          <meshBasicMaterial color="#1a2a5a" transparent opacity={0.3} />
-        </mesh>
-      </group>
-
-      {/* ── Pointed gothic arch top ── */}
-      <mesh position={[0, 6.5, 0.05]}>
-        <coneGeometry args={[3.5, 2.5, 3]} />
-        <meshStandardMaterial color={stoneColor} roughness={0.92} />
+      {/* Glass panels - main */}
+      <mesh position={[0, 0.5, 0.1]}>
+        <planeGeometry args={[6, 9.5]} />
+        <meshBasicMaterial color="#1a2a5a" transparent opacity={0.25} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* ── Stone sill at bottom ── */}
-      <mesh position={[0, -5.4, 0.15]}>
-        <boxGeometry args={[7.4, 0.4, 0.5]} />
-        <meshStandardMaterial color={stoneLight} roughness={0.92} />
+      {/* Glass panel sections - vertical mullions */}
+      {[-2, -0.7, 0.7, 2].map((x, i) => (
+        <mesh key={`mullion-${i}`} position={[x, 0.5, 0.15]}>
+          <boxGeometry args={[0.08, 9.5, 0.1]} />
+          <meshStandardMaterial color="#4a3a28" roughness={0.8} metalness={0.2} />
+        </mesh>
+      ))}
+      {/* Horizontal transoms */}
+      {[-3, -1.2, 0.6, 2.4].map((y, i) => (
+        <mesh key={`transom-${i}`} position={[0, y + 0.5, 0.15]}>
+          <boxGeometry args={[6, 0.08, 0.1]} />
+          <meshStandardMaterial color="#4a3a28" roughness={0.8} metalness={0.2} />
+        </mesh>
+      ))}
+      {/* Colored glass accents */}
+      <mesh position={[-1, 3.5, 0.12]}>
+        <circleGeometry args={[0.5, 8]} />
+        <meshBasicMaterial color="#cc3333" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* ── Decorative stone tracery between lancets and rose ── */}
-      <mesh position={[-1.1, 4.2, 0.12]}>
-        <boxGeometry args={[0.12, 1.5, 0.06]} />
-        <meshStandardMaterial color={stoneLight} roughness={0.9} />
+      <mesh position={[1, 3.5, 0.12]}>
+        <circleGeometry args={[0.5, 8]} />
+        <meshBasicMaterial color="#33aa33" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[1.1, 4.2, 0.12]}>
-        <boxGeometry args={[0.12, 1.5, 0.06]} />
-        <meshStandardMaterial color={stoneLight} roughness={0.9} />
+      <mesh position={[0, 4.5, 0.12]}>
+        <circleGeometry args={[0.6, 8]} />
+        <meshBasicMaterial color="#ddaa33" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* ── Lighting ── */}
-      <pointLight ref={lightRef} position={[0, 1, 3]} color="#8899cc" intensity={2.5} distance={25} decay={1.5} />
-      <pointLight position={[0, 4, 2]} color="#aabbdd" intensity={1.5} distance={18} decay={2} />
-      {/* Color spill from stained glass */}
-      <pointLight position={[-1.5, 0, 2]} color="#cc4422" intensity={0.5} distance={10} decay={2} />
-      <pointLight position={[1.5, 0, 2]} color="#2244aa" intensity={0.5} distance={10} decay={2} />
-      <pointLight position={[0, 5, 2]} color="#ddaa33" intensity={0.6} distance={10} decay={2} />
+      {/* Gold crest/emblem at center */}
+      <mesh position={[0, 1.5, 0.12]}>
+        <circleGeometry args={[0.8, 8]} />
+        <meshStandardMaterial color="#c4a033" metalness={0.6} roughness={0.3} emissive="#c4a033" emissiveIntensity={0.3} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Pointed arch top piece */}
+      <mesh position={[0, 6, 0.05]}>
+        <coneGeometry args={[3.2, 2, 3]} />
+        <meshStandardMaterial color="#5a4a3a" roughness={0.9} />
+      </mesh>
+      {/* Light coming through */}
+      <pointLight ref={lightRef} position={[0, 1, 2]} color="#8899cc" intensity={2} distance={20} decay={1.5} />
+      <pointLight position={[0, 3, 1]} color="#aabbdd" intensity={1} distance={15} decay={2} />
     </group>
   );
 }
