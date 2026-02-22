@@ -484,19 +484,21 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
       <pointLight position={[0, -1, -1]} intensity={0.15} color="#aaaacc" />
 
       {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.95, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.0, 0]} receiveShadow>
         <circleGeometry args={[0.7, 32]} />
         <meshStandardMaterial color="#2a2520" roughness={0.95} />
       </mesh>
 
-      <WizardCharacter robeColor={robeColor} accentColor={accentColor} />
+      <group scale={0.65}>
+        <WizardCharacter robeColor={robeColor} accentColor={accentColor} />
+      </group>
 
       <OrbitControls
         enablePan={false}
         enableZoom={false}
         minPolarAngle={Math.PI * 0.3}
         maxPolarAngle={Math.PI * 0.6}
-        target={[0, 0.1, 0]}
+        target={[0, -0.2, 0]}
         autoRotate
         autoRotateSpeed={1.5}
       />
@@ -511,7 +513,7 @@ export default function CharacterPreview3D({ robeColor, accentColor }: Character
       style={{ background: "radial-gradient(ellipse at center, #1a1510 0%, #0a0808 100%)" }}
     >
       <Canvas
-        camera={{ position: [0, 0.5, 3.5], fov: 35 }}
+        camera={{ position: [0, 0.2, 3.0], fov: 32 }}
         gl={{ antialias: true, alpha: false }}
       >
         <CharacterScene robeColor={robeColor} accentColor={accentColor} />
