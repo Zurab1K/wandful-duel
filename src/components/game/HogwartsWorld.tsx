@@ -275,15 +275,27 @@ function CameraController({
 
   useFrame((_, delta) => {
     const input = moveInput.current;
+
+    // Dead-zone: ignore tiny residual values so character stops cleanly
+    const fwd = Math.abs(input.forward) < 0.05 ? 0 : input.forward;
+    const trn = Math.abs(input.turn) < 0.05 ? 0 : input.turn;
+
+    if (fwd === 0 && trn === 0) {
+      // No input — keep camera in sync but don't move
+      camera.position.copy(playerPos.current);
+      camera.rotation.set(0, playerRot.current, 0);
+      return;
+    }
+
     const speed = input.sprint ? 8 : 4;
     const turnSpeed = input.sprint ? 1.8 : 1.2;
 
-    // Turn — smoothed input already prevents jitter
-    playerRot.current -= input.turn * turnSpeed * delta;
+    // Turn
+    playerRot.current -= trn * turnSpeed * delta;
 
     // Move forward/backward
-    const dx = Math.sin(playerRot.current) * input.forward * speed * delta;
-    const dz = Math.cos(playerRot.current) * input.forward * speed * delta;
+    const dx = Math.sin(playerRot.current) * fwd * speed * delta;
+    const dz = Math.cos(playerRot.current) * fwd * speed * delta;
 
     const newX = playerPos.current.x + dx;
     const newZ = playerPos.current.z + dz;
