@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import DuelArena from "./pages/DuelArena";
 import HogwartsMap from "./pages/HogwartsMap";
+import HogwartsExplore from "./pages/HogwartsExplore";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/map" element={<HogwartsMap />} />
+          <Route path="/explore" element={<HogwartsExplore />} />
           <Route path="/duel" element={<DuelArena />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
