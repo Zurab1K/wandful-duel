@@ -558,7 +558,7 @@ function NightSkyWindow({
 export default function GreatHallScene() {
   const hw = 12;
   const hd = 18;
-  const wallH = 10;
+  const wallH = 14;
   const cx = 0, cz = 0;
 
   // Generate floating candle positions — more candles, clustered over tables
