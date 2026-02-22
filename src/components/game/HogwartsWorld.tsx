@@ -352,7 +352,7 @@ function WorldInner({
 }: HogwartsWorldProps) {
   return (
     <>
-      <fog attach="fog" args={["#0a0808", 3, 25]} />
+      <fog attach="fog" args={["#1a1510", 10, 50]} />
 
       {/* Render current room */}
       <RoomMesh room={currentRoom} />

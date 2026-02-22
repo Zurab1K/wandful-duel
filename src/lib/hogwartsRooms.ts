@@ -56,15 +56,15 @@ export const ROOMS: RoomDef[] = [
     floorColor: "#3a3228",
     ceilingColor: "#2a2520",
     ambientColor: "#ffd699",
-    ambientIntensity: 0.15,
+    ambientIntensity: 0.6,
     lights: [
-      { position: [-5, 4, -6], color: "#ff9944", intensity: 1.5 },
-      { position: [5, 4, -6], color: "#ff9944", intensity: 1.5 },
-      { position: [-5, 4, 0], color: "#ff9944", intensity: 1.2 },
-      { position: [5, 4, 0], color: "#ff9944", intensity: 1.2 },
-      { position: [-5, 4, 6], color: "#ff9944", intensity: 1.5 },
-      { position: [5, 4, 6], color: "#ff9944", intensity: 1.5 },
-      { position: [0, 4.5, 0], color: "#ffeebb", intensity: 0.5 }, // chandelier
+      { position: [-5, 4, -6], color: "#ff9944", intensity: 4 },
+      { position: [5, 4, -6], color: "#ff9944", intensity: 4 },
+      { position: [-5, 4, 0], color: "#ff9944", intensity: 3 },
+      { position: [5, 4, 0], color: "#ff9944", intensity: 3 },
+      { position: [-5, 4, 6], color: "#ff9944", intensity: 4 },
+      { position: [5, 4, 6], color: "#ff9944", intensity: 4 },
+      { position: [0, 4.5, 0], color: "#ffeebb", intensity: 2 }, // chandelier
     ],
     props: [
       // Long tables
@@ -107,13 +107,13 @@ export const ROOMS: RoomDef[] = [
     floorColor: "#4a4640",
     ceilingColor: "#3a3835",
     ambientColor: "#aabbdd",
-    ambientIntensity: 0.3,
+    ambientIntensity: 0.8,
     lights: [
-      { position: [-7, 3, -7], color: "#ffaa55", intensity: 1 },
-      { position: [7, 3, -7], color: "#ffaa55", intensity: 1 },
-      { position: [-7, 3, 7], color: "#ffaa55", intensity: 1 },
-      { position: [7, 3, 7], color: "#ffaa55", intensity: 1 },
-      { position: [0, 3.5, 0], color: "#8899cc", intensity: 0.6 }, // moonlight
+      { position: [-7, 3, -7], color: "#ffaa55", intensity: 3 },
+      { position: [7, 3, -7], color: "#ffaa55", intensity: 3 },
+      { position: [-7, 3, 7], color: "#ffaa55", intensity: 3 },
+      { position: [7, 3, 7], color: "#ffaa55", intensity: 3 },
+      { position: [0, 3.5, 0], color: "#8899cc", intensity: 2 }, // moonlight
     ],
     props: [
       // Fountain
@@ -162,11 +162,11 @@ export const ROOMS: RoomDef[] = [
     floorColor: "#2a2822",
     ceilingColor: "#1a1815",
     ambientColor: "#ffddaa",
-    ambientIntensity: 0.1,
+    ambientIntensity: 0.5,
     lights: [
-      { position: [0, 3, -4], color: "#ffcc77", intensity: 0.8 },
-      { position: [0, 3, 4], color: "#ffcc77", intensity: 0.8 },
-      { position: [-3, 3, 0], color: "#ffcc77", intensity: 0.6 },
+      { position: [0, 3, -4], color: "#ffcc77", intensity: 3 },
+      { position: [0, 3, 4], color: "#ffcc77", intensity: 3 },
+      { position: [-3, 3, 0], color: "#ffcc77", intensity: 2 },
     ],
     props: [
       // Bookshelves along walls
@@ -199,12 +199,12 @@ export const ROOMS: RoomDef[] = [
     floorColor: "#1a1a18",
     ceilingColor: "#151512",
     ambientColor: "#335544",
-    ambientIntensity: 0.06,
+    ambientIntensity: 0.4,
     lights: [
-      { position: [-4, 2.5, -5], color: "#44dd66", intensity: 0.8 },
-      { position: [4, 2.5, -5], color: "#44dd66", intensity: 0.8 },
-      { position: [-4, 2.5, 5], color: "#ff6633", intensity: 0.6 },
-      { position: [4, 2.5, 5], color: "#ff6633", intensity: 0.6 },
+      { position: [-4, 2.5, -5], color: "#44dd66", intensity: 3 },
+      { position: [4, 2.5, -5], color: "#44dd66", intensity: 3 },
+      { position: [-4, 2.5, 5], color: "#ff6633", intensity: 2.5 },
+      { position: [4, 2.5, 5], color: "#ff6633", intensity: 2.5 },
     ],
     props: [
       // Cauldrons
@@ -238,11 +238,11 @@ export const ROOMS: RoomDef[] = [
     floorColor: "#3a2218",
     ceilingColor: "#2a1a12",
     ambientColor: "#ff8844",
-    ambientIntensity: 0.15,
+    ambientIntensity: 0.6,
     lights: [
-      { position: [0, 3, -3], color: "#ff6622", intensity: 1.5 }, // fireplace
-      { position: [-3, 3, 3], color: "#ffaa55", intensity: 0.6 },
-      { position: [3, 3, 3], color: "#ffaa55", intensity: 0.6 },
+      { position: [0, 3, -3], color: "#ff6622", intensity: 4 }, // fireplace
+      { position: [-3, 3, 3], color: "#ffaa55", intensity: 2.5 },
+      { position: [3, 3, 3], color: "#ffaa55", intensity: 2.5 },
     ],
     props: [
       // Fireplace
