@@ -8,17 +8,19 @@ import WandCanvas from "@/components/game/WandCanvas";
 import DungeonScene from "@/components/game/DungeonScene";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import arenaBg from "@/assets/arena-bg.jpg";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const WEBCAM_W = 240;
+const WEBCAM_H = 180;
 
 export default function DuelArena() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
-  const [videoDimensions, setVideoDimensions] = useState({ width: 640, height: 480 });
-  const [showScene, setShowScene] = useState(true);
   const [spellActive, setSpellActive] = useState(false);
   const [activeSpellColor, setActiveSpellColor] = useState("#ef4444");
   const [pathGesture, setPathGesture] = useState<SpellGesture>("none");
@@ -61,9 +63,7 @@ export default function DuelArena() {
         },
         body: JSON.stringify({ text }),
       });
-
       if (!response.ok) return;
-
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
@@ -91,33 +91,22 @@ export default function DuelArena() {
           enemyMana: newGameState.enemyMana,
         }),
       });
-
       const data = await response.json();
-      if (data.error) {
-        console.error("AI opponent error:", data.error);
-        return;
-      }
+      if (data.error) return;
 
       const enemySpell = SPELLS.find((s) => s.name === data.spell);
-
-      // Show taunt
       setEnemyTaunt(data.taunt);
       setTimeout(() => setEnemyTaunt(null), 3000);
-
-      // Play voice taunt
       playTaunt(data.taunt);
 
-      // Apply enemy spell
       if (enemySpell) {
         setTimeout(() => {
           setGameState((prev) => {
             const updated = { ...prev };
             updated.enemyMana = Math.max(0, prev.enemyMana - enemySpell.manaCost);
-
             if (!enemySpell.isDefensive && !prev.shieldActive) {
               updated.playerHealth = Math.max(0, prev.playerHealth - enemySpell.damage);
             } else if (!enemySpell.isDefensive && prev.shieldActive) {
-              // Shield blocks it
               toast({ title: "Protego!", description: `Blocked ${enemySpell.name}!` });
             }
             return updated;
@@ -132,7 +121,6 @@ export default function DuelArena() {
   // Cast spell
   const castSpell = useCallback((spellName: string) => {
     if (castCooldownRef.current) return;
-
     const spell = SPELLS.find((s) => s.name === spellName);
     if (!spell) return;
 
@@ -141,7 +129,6 @@ export default function DuelArena() {
         toast({ title: "Not enough mana!", variant: "destructive" });
         return prev;
       }
-
       const newState = { ...prev };
       newState.playerMana -= spell.manaCost;
       newState.lastSpellCast = spell.name;
@@ -154,17 +141,11 @@ export default function DuelArena() {
         newState.combo += 1;
       }
 
-      // Track history
       playerSpellHistory.current.push(spell.name);
-
-      // Trigger spell visual
       setActiveSpellColor(spell.color);
       setSpellActive(true);
       setTimeout(() => setSpellActive(false), 800);
-
-      // Trigger AI opponent response
       setTimeout(() => triggerEnemyTurn(newState), 1500);
-
       return newState;
     });
 
@@ -175,7 +156,7 @@ export default function DuelArena() {
     }, 2000);
   }, [triggerEnemyTurn]);
 
-  // Watch for hand gestures (simple gestures)
+  // Watch for hand gestures
   const lastGestureRef = useRef("");
   useEffect(() => {
     if (wandHand && wandHand.gesture !== lastGestureRef.current) {
@@ -212,36 +193,15 @@ export default function DuelArena() {
     return () => clearInterval(interval);
   }, []);
 
-  // Video dimensions
-  useEffect(() => {
-    const updateDims = () => {
-      if (containerRef.current) {
-        setVideoDimensions({
-          width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight,
-        });
-      }
-    };
-    updateDims();
-    window.addEventListener("resize", updateDims);
-    return () => window.removeEventListener("resize", updateDims);
-  }, []);
-
   // Game over check
   useEffect(() => {
     if (gameState.playerHealth <= 0) {
       toast({ title: "Defeat!", description: "The opponent has bested you...", variant: "destructive" });
-      setTimeout(() => {
-        setGameState(INITIAL_GAME_STATE);
-        playerSpellHistory.current = [];
-      }, 3000);
+      setTimeout(() => { setGameState(INITIAL_GAME_STATE); playerSpellHistory.current = []; }, 3000);
     }
     if (gameState.enemyHealth <= 0) {
       toast({ title: "Victory!", description: "You are the champion duelist!" });
-      setTimeout(() => {
-        setGameState(INITIAL_GAME_STATE);
-        playerSpellHistory.current = [];
-      }, 3000);
+      setTimeout(() => { setGameState(INITIAL_GAME_STATE); playerSpellHistory.current = []; }, 3000);
     }
   }, [gameState.playerHealth, gameState.enemyHealth]);
 
@@ -249,9 +209,18 @@ export default function DuelArena() {
   const wandTip = wandHand?.wandTip || null;
 
   return (
-    <div className="relative w-full h-screen bg-background overflow-hidden" ref={containerRef}>
-      {/* 3D Dungeon Scene */}
-      {showScene && isTracking && (
+    <div className="relative w-full h-screen overflow-hidden" ref={containerRef}>
+      {/* Fullscreen arena background image */}
+      <img
+        src={arenaBg}
+        alt="Hogwarts Dueling Arena"
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      />
+      {/* Dark overlay for atmosphere */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/70 via-black/30 to-black/50" />
+
+      {/* 3D Scene overlay (spell effects, shield, opponent) */}
+      {isTracking && (
         <DungeonScene
           wandScreenPos={wandTip}
           spellActive={spellActive}
@@ -260,32 +229,36 @@ export default function DuelArena() {
         />
       )}
 
-      {/* Webcam feed (semi-transparent over 3D) */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          transform: "scaleX(-1)",
-          opacity: isTracking && showScene ? 0.3 : isTracking ? 0.8 : 0,
-          zIndex: showScene ? 5 : 0,
-        }}
-        playsInline
-        muted
-      />
-
-      {/* Wand trail canvas */}
-      {isTracking && (
-        <WandCanvas
-          hands={hands}
-          wandTrail={wandTrail}
-          width={videoDimensions.width}
-          height={videoDimensions.height}
-        />
-      )}
-
       {/* HUD */}
       {isTracking && (
         <SpellHUD gameState={gameState} detectedGesture={currentGesture} />
+      )}
+
+      {/* Small corner webcam with hand tracking overlay */}
+      {isTracking && (
+        <div
+          className="absolute bottom-28 left-4 z-30 rounded-lg overflow-hidden border-2 border-primary/50 shadow-lg"
+          style={{ width: WEBCAM_W, height: WEBCAM_H }}
+        >
+          <video
+            ref={videoRef}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ transform: "scaleX(-1)" }}
+            playsInline
+            muted
+          />
+          <WandCanvas
+            hands={hands}
+            wandTrail={wandTrail}
+            width={WEBCAM_W}
+            height={WEBCAM_H}
+          />
+        </div>
+      )}
+
+      {/* Hidden video for pre-tracking */}
+      {!isTracking && (
+        <video ref={videoRef} className="hidden" playsInline muted />
       )}
 
       {/* Path gesture indicator */}
@@ -307,7 +280,7 @@ export default function DuelArena() {
 
       {/* Navigation hand indicator */}
       {navHand && isTracking && (
-        <div className="absolute bottom-24 right-4 z-30 bg-parchment rounded-lg px-3 py-2">
+        <div className="absolute bottom-4 left-4 z-30 bg-parchment rounded-lg px-3 py-2">
           <p className="font-display text-[10px] text-muted-foreground tracking-wider uppercase">Nav Hand</p>
           <p className="font-display text-xs text-primary">
             {navHand.gesture === "fist" ? "🏃 Sprint" : navHand.gesture === "open_palm" ? "🛡️ Block" : "✋ Ready"}
@@ -315,17 +288,16 @@ export default function DuelArena() {
         </div>
       )}
 
-      {/* Controls overlay */}
+      {/* Controls overlay - pre-game */}
       {!isTracking && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/80">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center">
           <div className="text-center space-y-6 max-w-lg px-6">
-            <h2 className="font-display text-3xl text-primary text-glow-gold">
+            <h2 className="font-display text-4xl text-primary text-glow-gold">
               Duel Arena
             </h2>
-            <p className="font-body text-lg text-foreground/70">
+            <p className="font-body text-lg text-foreground/80">
               Enable your webcam to begin. Hold a stick as your wand and use
-              hand gestures to cast spells. An AI wizard opponent will counter
-              your moves with snarky taunts!
+              hand gestures to cast spells against your AI opponent!
             </p>
 
             {error && (
@@ -360,10 +332,10 @@ export default function DuelArena() {
                 Hand Gestures
               </h3>
               <div className="space-y-2 font-body text-sm text-foreground/80">
-                <div>✊ <strong>Fist</strong> → Expelliarmus (disarm)</div>
-                <div>🖐️ <strong>Open Palm</strong> → Protego (shield)</div>
-                <div>☝️ <strong>Point</strong> → Stupefy (stun)</div>
-                <div>✌️ <strong>Peace</strong> → Lumos (light)</div>
+                <div>✊ <strong>Fist</strong> → Expelliarmus</div>
+                <div>🖐️ <strong>Open Palm</strong> → Protego</div>
+                <div>☝️ <strong>Point</strong> → Stupefy</div>
+                <div>✌️ <strong>Peace</strong> → Lumos</div>
               </div>
               <h3 className="font-display text-sm text-primary tracking-wider uppercase mt-4 mb-3">
                 Wand Patterns
@@ -379,25 +351,15 @@ export default function DuelArena() {
         </div>
       )}
 
-      {/* Exit + toggle buttons */}
+      {/* Exit button */}
       {isTracking && (
-        <div className="absolute top-4 left-4 z-30 flex gap-2 pointer-events-auto">
+        <div className="absolute top-4 left-4 z-30 pointer-events-auto">
           <Button
             variant="spell"
             size="sm"
-            onClick={() => {
-              stopTracking();
-              navigate("/");
-            }}
+            onClick={() => { stopTracking(); navigate("/"); }}
           >
             ✕ Exit
-          </Button>
-          <Button
-            variant="spell"
-            size="sm"
-            onClick={() => setShowScene((s) => !s)}
-          >
-            {showScene ? "🎥 Webcam" : "🏰 3D Arena"}
           </Button>
         </div>
       )}
