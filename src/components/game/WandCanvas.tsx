@@ -96,7 +96,10 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
     // Draw head pose indicator
     if (headPose) {
       if (headPose.faceLandmarks) {
-        for (let i = 0; i < headPose.faceLandmarks.length; i += 3) {
+        const total = headPose.faceLandmarks.length;
+        const targetCount = 80;
+        const step = Math.max(1, Math.floor(total / targetCount));
+        for (let i = 0; i < total; i += step) {
           const lm = headPose.faceLandmarks[i];
           const fx = lm.x * width;
           const fy = lm.y * height;
