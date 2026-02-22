@@ -509,6 +509,98 @@ export default function GreatHallScene() {
         );
       })}
 
+      {/* ═══ Night Sky Windows (between pillars on both walls) ═══ */}
+      {Array.from({ length: 6 }, (_, i) => {
+        const z = -hd + 5.5 + i * 5;
+        return (
+          <group key={`windows-${i}`}>
+            {/* West wall window */}
+            <group position={[-hw + 0.15, 5.5, z]}>
+              {/* Window frame */}
+              <mesh>
+                <boxGeometry args={[0.15, 4.5, 2]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
+              </mesh>
+              {/* Night sky glass */}
+              <mesh position={[0.05, 0, 0]}>
+                <planeGeometry args={[1.6, 4]} />
+                <meshBasicMaterial color="#070b1a" side={THREE.DoubleSide} />
+              </mesh>
+              {/* Stars */}
+              {Array.from({ length: 8 }, (_, s) => (
+                <mesh key={s} position={[0.06, (Math.random() - 0.5) * 3.5, (Math.random() - 0.5) * 1.4]}>
+                  <sphereGeometry args={[0.02 + Math.random() * 0.02, 4, 4]} />
+                  <meshBasicMaterial color="#ffffff" transparent opacity={0.6 + Math.random() * 0.4} />
+                </mesh>
+              ))}
+              {/* Moon glow (only on window 2) */}
+              {i === 2 && (
+                <>
+                  <mesh position={[0.06, 1, 0.3]}>
+                    <circleGeometry args={[0.25, 16]} />
+                    <meshBasicMaterial color="#ddeeff" side={THREE.DoubleSide} />
+                  </mesh>
+                  <mesh position={[0.06, 1, 0.29]}>
+                    <circleGeometry args={[0.4, 16]} />
+                    <meshBasicMaterial color="#8899bb" transparent opacity={0.2} side={THREE.DoubleSide} />
+                  </mesh>
+                </>
+              )}
+              {/* Mullion (vertical divider) */}
+              <mesh position={[0.07, 0, 0]}>
+                <boxGeometry args={[0.05, 4, 0.06]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
+              </mesh>
+              {/* Horizontal transom */}
+              <mesh position={[0.07, 0.5, 0]}>
+                <boxGeometry args={[0.05, 0.06, 1.6]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
+              </mesh>
+              {/* Pointed arch top */}
+              <mesh position={[0.07, 2.2, 0]}>
+                <coneGeometry args={[0.85, 0.8, 3]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
+              </mesh>
+            </group>
+            {/* East wall window */}
+            <group position={[hw - 0.15, 5.5, z]} rotation={[0, Math.PI, 0]}>
+              <mesh>
+                <boxGeometry args={[0.15, 4.5, 2]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
+              </mesh>
+              <mesh position={[0.05, 0, 0]}>
+                <planeGeometry args={[1.6, 4]} />
+                <meshBasicMaterial color="#070b1a" side={THREE.DoubleSide} />
+              </mesh>
+              {Array.from({ length: 8 }, (_, s) => (
+                <mesh key={s} position={[0.06, (Math.random() - 0.5) * 3.5, (Math.random() - 0.5) * 1.4]}>
+                  <sphereGeometry args={[0.02 + Math.random() * 0.02, 4, 4]} />
+                  <meshBasicMaterial color="#ffffff" transparent opacity={0.6 + Math.random() * 0.4} />
+                </mesh>
+              ))}
+              {i === 4 && (
+                <mesh position={[0.06, 0.8, -0.2]}>
+                  <circleGeometry args={[0.2, 16]} />
+                  <meshBasicMaterial color="#ccddf0" side={THREE.DoubleSide} />
+                </mesh>
+              )}
+              <mesh position={[0.07, 0, 0]}>
+                <boxGeometry args={[0.05, 4, 0.06]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
+              </mesh>
+              <mesh position={[0.07, 0.5, 0]}>
+                <boxGeometry args={[0.05, 0.06, 1.6]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
+              </mesh>
+              <mesh position={[0.07, 2.2, 0]}>
+                <coneGeometry args={[0.85, 0.8, 3]} />
+                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
+              </mesh>
+            </group>
+          </group>
+        );
+      })}
+
       {/* ═══ Stained Glass Window (far north wall) ═══ */}
       <StainedGlassWindow position={[0, 4, -hd + 0.3]} />
 
