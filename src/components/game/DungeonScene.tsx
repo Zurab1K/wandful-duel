@@ -142,7 +142,6 @@ interface DungeonSceneProps {
 }
 
 function DungeonInner({ wandScreenPos, spellActive, spellColor, shieldActive }: DungeonSceneProps) {
-  // Map wand screen position (0-1) to 3D position
   const wandPos: [number, number, number] = useMemo(() => {
     if (!wandScreenPos) return [0, 0, 2];
     const x = (wandScreenPos.x - 0.5) * 8;
@@ -152,49 +151,10 @@ function DungeonInner({ wandScreenPos, spellActive, spellColor, shieldActive }: 
 
   return (
     <>
-      {/* Ambient */}
-      <ambientLight intensity={0.08} color="#1a1520" />
-      <fog attach="fog" args={["#0a0808", 5, 25]} />
-
-      {/* Floor */}
-      <Floor />
-
-      {/* Ceiling */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 5, 0]}>
-        <planeGeometry args={[16, 16]} />
-        <meshStandardMaterial color="#1a1510" roughness={1} />
-      </mesh>
-
-      {/* Walls */}
-      <Wall position={[-8, 2, 0]} size={[0.5, 6, 16]} />
-      <Wall position={[8, 2, 0]} size={[0.5, 6, 16]} />
-      <Wall position={[0, 2, -8]} size={[16, 6, 0.5]} />
-      <Wall position={[0, 2, 8]} size={[16, 6, 0.5]} />
-
-      {/* Arches */}
-      <Arch position={[-4, 0, -7.5]} />
-      <Arch position={[4, 0, -7.5]} />
-
-      {/* Torches */}
-      <TorchFlame position={[-7.5, 3, -3]} />
-      <TorchFlame position={[-7.5, 3, 3]} />
-      <TorchFlame position={[7.5, 3, -3]} />
-      <TorchFlame position={[7.5, 3, 3]} />
-      <TorchFlame position={[-3, 3, -7.5]} />
-      <TorchFlame position={[3, 3, -7.5]} />
-
-      {/* Dueling circle on floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.98, -2]}>
-        <ringGeometry args={[2.5, 2.8, 32]} />
-        <meshBasicMaterial color="#eab308" opacity={0.15} transparent />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.97, -2]}>
-        <ringGeometry args={[2.3, 2.35, 32]} />
-        <meshBasicMaterial color="#eab308" opacity={0.1} transparent />
-      </mesh>
+      <ambientLight intensity={0.3} color="#ffd699" />
 
       {/* Dynamic wand light */}
-      <SpellLight wandPosition={wandPos} spellColor={spellColor || "#eab308"} intensity={spellActive ? 4 : 1} />
+      <SpellLight wandPosition={wandPos} spellColor={spellColor || "#eab308"} intensity={spellActive ? 6 : 1.5} />
 
       {/* Spell projectile */}
       <SpellProjectile active={spellActive} startPos={wandPos} color={spellColor || "#ef4444"} />
@@ -203,26 +163,22 @@ function DungeonInner({ wandScreenPos, spellActive, spellColor, shieldActive }: 
       {shieldActive && (
         <mesh position={[0, 1.5, 1]}>
           <sphereGeometry args={[1.5, 32, 32]} />
-          <meshBasicMaterial color="#3b82f6" opacity={0.15} transparent side={THREE.DoubleSide} />
+          <meshBasicMaterial color="#3b82f6" opacity={0.25} transparent side={THREE.DoubleSide} />
         </mesh>
       )}
 
-      {/* Opponent (simple dark figure at far end) */}
+      {/* Opponent figure */}
       <group position={[0, 0.5, -6]}>
         <mesh position={[0, 0.8, 0]}>
           <capsuleGeometry args={[0.3, 1.2, 8, 16]} />
           <meshStandardMaterial color="#1a1a2e" roughness={0.8} />
         </mesh>
-        {/* Head */}
         <mesh position={[0, 1.9, 0]}>
           <sphereGeometry args={[0.25, 16, 16]} />
           <meshStandardMaterial color="#2a2a3e" roughness={0.7} />
         </mesh>
-        {/* Enemy wand glow */}
-        <pointLight position={[0.5, 1.2, 0]} color="#ff4444" intensity={0.8} distance={5} />
+        <pointLight position={[0.5, 1.2, 0]} color="#ff4444" intensity={1.5} distance={8} />
       </group>
-
-      {/* Camera is set on Canvas props */}
     </>
   );
 }
