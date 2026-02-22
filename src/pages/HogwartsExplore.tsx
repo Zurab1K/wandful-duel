@@ -50,78 +50,87 @@ export default function HogwartsExplore() {
     error,
     hands,
     wandTrail,
+    headPose,
     startTracking,
     stopTracking,
   } = useHandTracking(videoRef);
 
-  const navHand = hands.find((h) => h.handedness === "Left");
-  const wandHand = hands.find((h) => h.handedness === "Right");
+  const wandHand = hands.find((h) => h.handedness === "Right") || hands.find((h) => h.handedness === "Left");
 
-  // ─── Left hand → movement input ───────────────────
+  // ─── Head lean → movement input ────────────────────
+  // Calibration: store initial head position as center reference
+  const headCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const headCalibrationFrames = useRef(0);
+
   useEffect(() => {
-    if (!navHand?.landmarks || !isTracking) {
-      // No hand detected — immediately zero out
+    if (!headPose || !isTracking) {
       smoothedInput.current.forward = 0;
       smoothedInput.current.turn = 0;
       moveInput.current = { forward: 0, turn: 0, sprint: false };
       return;
     }
 
-    const wrist = navHand.landmarks[0];
-    if (!wrist) {
-      smoothedInput.current.forward = 0;
-      smoothedInput.current.turn = 0;
+    // Auto-calibrate: average the first 30 frames as the "center" position
+    if (!headCenterRef.current) {
+      headCenterRef.current = { x: headPose.x, y: headPose.y };
+      headCalibrationFrames.current = 1;
+    } else if (headCalibrationFrames.current < 30) {
+      headCalibrationFrames.current++;
+      const n = headCalibrationFrames.current;
+      headCenterRef.current = {
+        x: headCenterRef.current.x + (headPose.x - headCenterRef.current.x) / n,
+        y: headCenterRef.current.y + (headPose.y - headCenterRef.current.y) / n,
+      };
       moveInput.current = { forward: 0, turn: 0, sprint: false };
       return;
     }
 
-    const hx = wrist.x; // 0–1 (mirrored camera)
-    const hy = wrist.y; // 0–1
+    const cx = headCenterRef.current.x;
+    const cy = headCenterRef.current.y;
 
-    // Wide deadzone — hand must move significantly from center to trigger movement
-    const FWD_DEAD_LO = 0.30;
-    const FWD_DEAD_HI = 0.70;
-    const TURN_DEAD_LO = 0.25;
-    const TURN_DEAD_HI = 0.75;
+    // Offset from center
+    const dx = headPose.x - cx; // positive = leaning right (in camera coords)
+    const dy = headPose.y - cy; // positive = leaning down/forward
 
-    // Y axis: hand up (low y) = forward, hand down (high y) = backward
+    // Deadzones
+    const FORWARD_DEAD = 0.03;
+    const TURN_DEAD = 0.04;
+
+    // Y axis: leaning forward (head goes up in camera = lower y) = walk forward
     let rawForward = 0;
-    if (hy < FWD_DEAD_LO) rawForward = (FWD_DEAD_LO - hy) / FWD_DEAD_LO;
-    else if (hy > FWD_DEAD_HI) rawForward = -(hy - FWD_DEAD_HI) / (1 - FWD_DEAD_HI);
+    if (dy < -FORWARD_DEAD) rawForward = Math.min(1, (-dy - FORWARD_DEAD) * 8);
+    else if (dy > FORWARD_DEAD) rawForward = Math.max(-1, -(dy - FORWARD_DEAD) * 8);
 
-    // X axis: hand left = turn left, hand right = turn right
+    // X axis: leaning left/right = turn (camera is mirrored, so left lean = higher x)
     let rawTurn = 0;
-    if (hx < TURN_DEAD_LO) rawTurn = (TURN_DEAD_LO - hx) / TURN_DEAD_LO;
-    else if (hx > TURN_DEAD_HI) rawTurn = -(hx - TURN_DEAD_HI) / (1 - TURN_DEAD_HI);
+    if (dx > TURN_DEAD) rawTurn = Math.min(1, (dx - TURN_DEAD) * 6);
+    else if (dx < -TURN_DEAD) rawTurn = Math.max(-1, (dx + TURN_DEAD) * 6);
 
-    // Quadratic curve for finer control near center
+    // Quadratic for finer control
     rawForward = Math.sign(rawForward) * rawForward * rawForward;
     rawTurn = Math.sign(rawTurn) * rawTurn * rawTurn;
 
-    // Clamp
-    rawForward = Math.max(-1, Math.min(1, rawForward));
-    rawTurn = Math.max(-1, Math.min(1, rawTurn));
-
-    // If raw input is zero (inside deadzone), snap smoothed to zero immediately
+    // Smooth
     if (rawForward === 0) {
-      smoothedInput.current.forward = 0;
+      smoothedInput.current.forward *= 0.7; // decay
     } else {
-      smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * 0.15;
+      smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * 0.2;
     }
     if (rawTurn === 0) {
-      smoothedInput.current.turn = 0;
+      smoothedInput.current.turn *= 0.7;
     } else {
-      smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * 0.15;
+      smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * 0.2;
     }
 
-    // Kill very small values
-    if (Math.abs(smoothedInput.current.forward) < 0.03) smoothedInput.current.forward = 0;
-    if (Math.abs(smoothedInput.current.turn) < 0.03) smoothedInput.current.turn = 0;
+    if (Math.abs(smoothedInput.current.forward) < 0.02) smoothedInput.current.forward = 0;
+    if (Math.abs(smoothedInput.current.turn) < 0.02) smoothedInput.current.turn = 0;
 
-    const sprint = navHand.gesture === "fist";
-
-    moveInput.current = { forward: smoothedInput.current.forward, turn: smoothedInput.current.turn, sprint };
-  }, [navHand, isTracking]);
+    moveInput.current = {
+      forward: smoothedInput.current.forward,
+      turn: smoothedInput.current.turn,
+      sprint: false,
+    };
+  }, [headPose, isTracking]);
 
   // ─── Room transitions ─────────────────────────────
   const doorCooldown = useRef(false);
@@ -192,7 +201,7 @@ export default function HogwartsExplore() {
         toast({ title: `Duel with ${npc.name}!`, description: npc.title });
       }
     }
-    lastWandGesture.current = wandHand.gesture;
+    lastWandGesture.current = wandHand?.gesture || "";
   }, [wandHand, nearbyNPC, inDuel, currentRoom]);
 
   // ─── Spell casting (during duel) ──────────────────
@@ -406,13 +415,12 @@ export default function HogwartsExplore() {
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-parchment rounded-lg px-4 py-3">
           <div className="font-body text-xs text-muted-foreground text-center space-y-1">
             <p className="font-display text-[10px] tracking-wider text-primary uppercase mb-2">
-              Left Hand Controls
+              Head Movement Controls
             </p>
-            <p>☝️ <strong>Hand Up</strong> → Walk Forward</p>
-            <p>👇 <strong>Hand Down</strong> → Walk Backward</p>
-            <p>👈 <strong>Hand Left</strong> → Turn Left</p>
-            <p>👉 <strong>Hand Right</strong> → Turn Right</p>
-            <p>✊ <strong>Fist</strong> → Sprint</p>
+            <p>🙂‍↕️ <strong>Lean Forward</strong> → Walk Forward</p>
+            <p>🙂‍↕️ <strong>Lean Back</strong> → Walk Backward</p>
+            <p>🙂‍↔️ <strong>Lean Left</strong> → Turn Left</p>
+            <p>🙂‍↔️ <strong>Lean Right</strong> → Turn Right</p>
           </div>
         </div>
       )}
@@ -447,8 +455,8 @@ export default function HogwartsExplore() {
               "I solemnly swear that I am up to no good"
             </p>
             <p className="font-body text-lg text-foreground/80">
-              Navigate Hogwarts castle in first person. Use your left hand to
-              move and your right hand to cast spells. Walk through glowing
+              Navigate Hogwarts castle in first person. Lean your head to
+              move and use your hand to cast spells. Walk through glowing
               doorways to explore different rooms.
             </p>
 
@@ -469,14 +477,13 @@ export default function HogwartsExplore() {
 
             <div className="bg-parchment rounded-lg p-4 text-left">
               <h3 className="font-display text-sm text-primary tracking-wider uppercase mb-3">
-                Movement (Left Hand)
+                Movement (Head Lean)
               </h3>
               <div className="space-y-1 font-body text-sm text-foreground/80">
-                <div>☝️ <strong>Hand Up</strong> → Walk Forward</div>
-                <div>👇 <strong>Hand Down</strong> → Walk Backward</div>
-                <div>👈 <strong>Hand Left</strong> → Turn Left</div>
-                <div>👉 <strong>Hand Right</strong> → Turn Right</div>
-                <div>✊ <strong>Fist</strong> → Sprint (2× speed)</div>
+                <div>⬆️ <strong>Lean Forward</strong> → Walk Forward</div>
+                <div>⬇️ <strong>Lean Back</strong> → Walk Backward</div>
+                <div>⬅️ <strong>Lean Left</strong> → Turn Left</div>
+                <div>➡️ <strong>Lean Right</strong> → Turn Right</div>
               </div>
               <h3 className="font-display text-sm text-primary tracking-wider uppercase mt-4 mb-3">
                 Spells (Right Hand)
