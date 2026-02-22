@@ -350,6 +350,7 @@ interface HogwartsWorldProps {
   spellActive: boolean;
   spellColor: string;
   shieldActive: boolean;
+  houseColor?: string;
 }
 
 function WorldInner({
@@ -362,6 +363,7 @@ function WorldInner({
   spellActive,
   spellColor,
   shieldActive,
+  houseColor = "#740001",
 }: HogwartsWorldProps) {
   return (
     <>
@@ -383,13 +385,13 @@ function WorldInner({
       />
 
       {/* First-person wand */}
-      <FirstPersonWandInner wandTip={wandTip} spellActive={spellActive} spellColor={spellColor} />
+      <FirstPersonWandInner wandTip={wandTip} spellActive={spellActive} spellColor={spellColor} houseColor={houseColor} />
 
       {/* Shield */}
       {shieldActive && (
         <mesh position={[playerPos.current.x, 1.5, playerPos.current.z]}>
           <sphereGeometry args={[1.2, 32, 32]} />
-          <meshBasicMaterial color="#3b82f6" transparent opacity={0.15} side={THREE.DoubleSide} />
+          <meshBasicMaterial color={houseColor} transparent opacity={0.15} side={THREE.DoubleSide} />
         </mesh>
       )}
     </>
@@ -401,10 +403,12 @@ function FirstPersonWandInner({
   wandTip,
   spellActive,
   spellColor,
+  houseColor = "#740001",
 }: {
   wandTip: { x: number; y: number } | null;
   spellActive: boolean;
   spellColor: string;
+  houseColor?: string;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const { camera } = useThree();
@@ -444,7 +448,7 @@ function FirstPersonWandInner({
       {/* Handle */}
       <mesh position={[0, -0.05, 0]}>
         <cylinderGeometry args={[0.022, 0.026, 0.12, 8]} />
-        <meshStandardMaterial color="#3a2a1a" roughness={0.8} />
+        <meshStandardMaterial color={houseColor} roughness={0.8} />
       </mesh>
       {/* Tip */}
       <mesh position={[0, 0.46, 0]}>
