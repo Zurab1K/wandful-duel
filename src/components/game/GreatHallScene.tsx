@@ -763,6 +763,126 @@ export default function GreatHallScene() {
         );
       })}
 
+      {/* ═══ South Wall — Grand Entrance ═══ */}
+      <group position={[0, 0, hd - 0.1]}>
+        {/* ── Large Gothic Arched Door ── */}
+        {/* Door frame - pointed arch surround */}
+        <mesh position={[0, 4.2, 0]}>
+          <boxGeometry args={[6.5, 8.4, 0.35]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+        {/* Inner arch recess */}
+        <mesh position={[0, 4, 0.1]}>
+          <boxGeometry args={[5.5, 7.5, 0.15]} />
+          <meshStandardMaterial color="#5a4a38" roughness={0.95} />
+        </mesh>
+        {/* Left door panel */}
+        <mesh position={[-1.2, 3.5, 0.2]}>
+          <boxGeometry args={[2.2, 7, 0.1]} />
+          <meshStandardMaterial color="#4a2a12" roughness={0.85} />
+        </mesh>
+        {/* Right door panel */}
+        <mesh position={[1.2, 3.5, 0.2]}>
+          <boxGeometry args={[2.2, 7, 0.1]} />
+          <meshStandardMaterial color="#4a2a12" roughness={0.85} />
+        </mesh>
+        {/* Door center seam */}
+        <mesh position={[0, 3.5, 0.26]}>
+          <boxGeometry args={[0.08, 7, 0.04]} />
+          <meshStandardMaterial color="#2a1a08" roughness={0.8} metalness={0.3} />
+        </mesh>
+        {/* Vertical wood planks on left door */}
+        {[-1.8, -1.2, -0.6].map((x, i) => (
+          <mesh key={`lp-${i}`} position={[x, 3.5, 0.26]}>
+            <boxGeometry args={[0.04, 7, 0.02]} />
+            <meshStandardMaterial color="#3a1a08" roughness={0.9} />
+          </mesh>
+        ))}
+        {/* Vertical wood planks on right door */}
+        {[0.6, 1.2, 1.8].map((x, i) => (
+          <mesh key={`rp-${i}`} position={[x, 3.5, 0.26]}>
+            <boxGeometry args={[0.04, 7, 0.02]} />
+            <meshStandardMaterial color="#3a1a08" roughness={0.9} />
+          </mesh>
+        ))}
+        {/* Horizontal wood bands */}
+        {[1.5, 3.5, 5.5].map((y, i) => (
+          <mesh key={`hb-${i}`} position={[0, y, 0.26]}>
+            <boxGeometry args={[4.8, 0.12, 0.04]} />
+            <meshStandardMaterial color="#2a0a04" roughness={0.8} metalness={0.4} />
+          </mesh>
+        ))}
+        {/* Door iron studs/rivets */}
+        {[1.5, 3.5, 5.5].flatMap((y, yi) =>
+          [-1.8, -1.2, -0.6, 0.6, 1.2, 1.8].map((x, xi) => (
+            <mesh key={`stud-${yi}-${xi}`} position={[x, y, 0.28]}>
+              <sphereGeometry args={[0.04, 6, 6]} />
+              <meshStandardMaterial color="#1a1a1a" metalness={0.7} roughness={0.3} />
+            </mesh>
+          ))
+        )}
+        {/* Door ring handles */}
+        <mesh position={[-0.5, 3.5, 0.3]}>
+          <torusGeometry args={[0.12, 0.025, 8, 16]} />
+          <meshStandardMaterial color="#3a2a1a" metalness={0.8} roughness={0.3} />
+        </mesh>
+        <mesh position={[0.5, 3.5, 0.3]}>
+          <torusGeometry args={[0.12, 0.025, 8, 16]} />
+          <meshStandardMaterial color="#3a2a1a" metalness={0.8} roughness={0.3} />
+        </mesh>
+        {/* Pointed arch top */}
+        <mesh position={[0, 8.2, 0.15]}>
+          <coneGeometry args={[3.2, 2, 3]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+
+        {/* ── Flanking stone pilasters ── */}
+        {[-3.5, 3.5].map((x, i) => (
+          <group key={`pilaster-${i}`}>
+            {/* Main shaft */}
+            <mesh position={[x, wallH / 2, 0.15]}>
+              <boxGeometry args={[0.6, wallH, 0.5]} />
+              <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
+            </mesh>
+            {/* Base */}
+            <mesh position={[x, 0.2, 0.15]}>
+              <boxGeometry args={[0.8, 0.4, 0.6]} />
+              <meshStandardMaterial color="#6a5b4a" roughness={0.95} />
+            </mesh>
+            {/* Capital */}
+            <mesh position={[x, wallH - 0.2, 0.15]}>
+              <boxGeometry args={[0.8, 0.4, 0.6]} />
+              <meshStandardMaterial color="#6a5b4a" roughness={0.95} />
+            </mesh>
+          </group>
+        ))}
+
+        {/* ── Flanking wall torches ── */}
+        <WallTorch position={[-5, 4.5, 0.3]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[5, 4.5, 0.3]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[-3.5, 6, 0.3]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[3.5, 6, 0.3]} rotation={[0, Math.PI, 0]} />
+
+        {/* ── Gothic arch detail above door ── */}
+        {/* Arch moulding layers */}
+        <mesh position={[0, 7.8, 0.12]}>
+          <boxGeometry args={[5.8, 0.2, 0.15]} />
+          <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+        </mesh>
+
+        {/* ── Stone block detail on flanks ── */}
+        {[-7, -5.5, 5.5, 7].map((x, i) => (
+          <group key={`block-${i}`}>
+            {Array.from({ length: 5 }, (_, j) => (
+              <mesh key={j} position={[x, 1 + j * 2, 0.12]}>
+                <boxGeometry args={[1.2, 0.04, 0.08]} />
+                <meshStandardMaterial color="#5a4a38" roughness={1} />
+              </mesh>
+            ))}
+          </group>
+        ))}
+      </group>
+
       {/* ═══ Floating Candles ═══ */}
       {candles.map((c, i) => (
         <FloatingCandle key={i} position={c.pos} phase={c.phase} />
