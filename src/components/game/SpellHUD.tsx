@@ -3,6 +3,7 @@ import { SPELLS, type GameState } from "@/lib/spells";
 interface SpellHUDProps {
   gameState: GameState;
   detectedGesture: string;
+  opponentName?: string;
 }
 
 function HealthBar({
@@ -41,7 +42,7 @@ function HealthBar({
   );
 }
 
-export default function SpellHUD({ gameState, detectedGesture }: SpellHUDProps) {
+export default function SpellHUD({ gameState, detectedGesture, opponentName = "Opponent" }: SpellHUDProps) {
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
       {/* Player stats - bottom left */}
@@ -63,7 +64,7 @@ export default function SpellHUD({ gameState, detectedGesture }: SpellHUDProps) 
       {/* Enemy stats - top right */}
       <div className="absolute top-4 right-4 w-64 bg-parchment rounded-lg p-4">
         <h3 className="font-display text-sm tracking-widest text-accent mb-3 uppercase">
-          Opponent
+          {opponentName}
         </h3>
         <div className="space-y-2">
           <HealthBar label="Health" value={gameState.enemyHealth} max={100} color="hsl(0, 85%, 55%)" />

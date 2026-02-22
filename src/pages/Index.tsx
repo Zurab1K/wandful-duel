@@ -50,9 +50,9 @@ const Index = () => {
           variant="hero"
           size="lg"
           className="mt-4 h-14 px-12 text-base"
-          onClick={() => navigate("/duel")}
+          onClick={() => navigate("/map")}
         >
-          Enter the Arena
+          🗺️ Explore Hogwarts
         </Button>
 
         {/* Instructions */}
