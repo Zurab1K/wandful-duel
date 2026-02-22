@@ -96,8 +96,29 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
     // Draw head pose indicator
     if (headPose) {
       if (headPose.faceLandmarks) {
-        for (let i = 0; i < headPose.faceLandmarks.length; i += 3) {
-          const lm = headPose.faceLandmarks[i];
+        // Key contour indices for a clean face mesh: jawline, eyebrows, eyes, nose, lips
+        const contourIndices = [
+          // Jawline
+          10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
+          // Left eyebrow
+          66, 107, 105, 63, 70,
+          // Right eyebrow
+          296, 336, 334, 293, 300,
+          // Left eye
+          33, 160, 158, 133, 153, 144,
+          // Right eye
+          362, 385, 387, 263, 373, 380,
+          // Nose bridge & tip
+          168, 6, 197, 195, 5, 4,
+          // Nose bottom
+          98, 97, 2, 326, 327,
+          // Outer lips
+          61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146,
+        ];
+        const indexSet = new Set(contourIndices);
+        for (const idx of indexSet) {
+          if (idx >= headPose.faceLandmarks.length) continue;
+          const lm = headPose.faceLandmarks[idx];
           const fx = lm.x * width;
           const fy = lm.y * height;
           ctx.beginPath();
