@@ -234,32 +234,29 @@ export default function DuelArena() {
         <SpellHUD gameState={gameState} detectedGesture={currentGesture} />
       )}
 
-      {/* Small corner webcam with hand tracking overlay */}
-      {isTracking && (
-        <div
-          className="absolute bottom-28 left-4 z-30 rounded-lg overflow-hidden border-2 border-primary/50 shadow-lg"
-          style={{ width: WEBCAM_W, height: WEBCAM_H }}
-        >
-          <video
-            ref={videoRef}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ transform: "scaleX(-1)" }}
-            playsInline
-            muted
-          />
+      {/* Webcam - always rendered so ref stays stable */}
+      <div
+        className={`absolute z-30 rounded-lg overflow-hidden border-2 border-primary/50 shadow-lg transition-all ${
+          isTracking ? "bottom-28 left-4" : "-left-[9999px]"
+        }`}
+        style={{ width: WEBCAM_W, height: WEBCAM_H }}
+      >
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ transform: "scaleX(-1)" }}
+          playsInline
+          muted
+        />
+        {isTracking && (
           <WandCanvas
             hands={hands}
             wandTrail={wandTrail}
             width={WEBCAM_W}
             height={WEBCAM_H}
           />
-        </div>
-      )}
-
-      {/* Hidden video for pre-tracking */}
-      {!isTracking && (
-        <video ref={videoRef} className="hidden" playsInline muted />
-      )}
+        )}
+      </div>
 
       {/* Path gesture indicator */}
       {isTracking && pathGesture !== "none" && (
