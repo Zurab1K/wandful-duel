@@ -461,12 +461,12 @@ function WizardCharacter({ robeColor, accentColor }: CharacterPreviewProps) {
 
   useFrame(({ clock }) => {
     if (groupRef.current) {
-      groupRef.current.position.y = -0.6 + Math.sin(clock.getElapsedTime() * 1.2) * 0.02;
+      groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 1.2) * 0.02;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, -1.55, 0]}>
+    <group ref={groupRef} position={[0, -0.17, 0]}>
       <HumanHead />
       <WizardBody robeColor={robeColor} accentColor={accentColor} />
       <WizardRobes robeColor={robeColor} accentColor={accentColor} />
@@ -484,12 +484,12 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
       <pointLight position={[0, -1, -1]} intensity={0.15} color="#aaaacc" />
 
       {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.1, 0]} receiveShadow>
-        <circleGeometry args={[0.7, 32]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <circleGeometry args={[1.0, 32]} />
         <meshStandardMaterial color="#2a2520" roughness={0.95} />
       </mesh>
 
-      <group scale={0.65}>
+      <group position={[0, 0, 0]} scale={0.65}>
         <WizardCharacter robeColor={robeColor} accentColor={accentColor} />
       </group>
 
@@ -498,7 +498,7 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
         enableZoom={false}
         minPolarAngle={Math.PI * 0.3}
         maxPolarAngle={Math.PI * 0.6}
-        target={[0, -1.0, 0]}
+        target={[0, 0.45, 0]}
         autoRotate
         autoRotateSpeed={1.5}
       />
@@ -513,7 +513,7 @@ export default function CharacterPreview3D({ robeColor, accentColor }: Character
       style={{ background: "radial-gradient(ellipse at center, #1a1510 0%, #0a0808 100%)" }}
     >
       <Canvas
-        camera={{ position: [0, -0.8, 3.0], fov: 32 }}
+        camera={{ position: [0, 0.5, 2.8], fov: 35 }}
         gl={{ antialias: true, alpha: false }}
       >
         <CharacterScene robeColor={robeColor} accentColor={accentColor} />
