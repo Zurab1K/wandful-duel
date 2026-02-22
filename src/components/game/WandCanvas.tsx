@@ -102,7 +102,7 @@ export default function WandCanvas({ hands, wandTrail, width, height }: WandCanv
     <canvas
       ref={canvasRef}
       className="absolute inset-0 z-10 pointer-events-none"
-      style={{ width, height }}
+      style={{ width, height, transform: "scaleX(-1)" }}
     />
   );
 }
