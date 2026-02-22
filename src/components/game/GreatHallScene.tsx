@@ -740,6 +740,11 @@ export default function GreatHallScene() {
       <DiningTable position={[7, 0, 2]} length={28} />
 
       {/* ═══ House Banners ═══ */}
+      {/* Front (north) wall banners — flanking the stained glass window */}
+      <HouseBanner position={[-8, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#8b0000" emblemColor="#ffd700" /> {/* Gryffindor */}
+      <HouseBanner position={[-4.5, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#c4a033" emblemColor="#1a1a1a" /> {/* Hufflepuff */}
+      <HouseBanner position={[4.5, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#1a3a6a" emblemColor="#c9792e" /> {/* Ravenclaw */}
+      <HouseBanner position={[8, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#1a5a1a" emblemColor="#c0c0c0" /> {/* Slytherin */}
       {/* West wall banners */}
       <HouseBanner position={[-hw + 0.3, 7.5, -8]} rotation={[0, Math.PI / 2, 0]} color="#1a5a1a" emblemColor="#c0c0c0" /> {/* Slytherin */}
       <HouseBanner position={[-hw + 0.3, 7.5, -2]} rotation={[0, Math.PI / 2, 0]} color="#8b0000" emblemColor="#ffd700" /> {/* Gryffindor */}
