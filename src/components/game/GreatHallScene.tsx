@@ -569,7 +569,7 @@ export default function GreatHallScene() {
     for (const tx of tableXs) {
       for (let j = 0; j < 14; j++) {
         arr.push({
-          pos: [tx + (Math.random() - 0.5) * 1.8, 4 + Math.random() * 4.5, -14 + j * 2.2 + Math.random()],
+          pos: [tx + (Math.random() - 0.5) * 1.8, 5 + Math.random() * 7, -14 + j * 2.2 + Math.random()],
           phase: Math.random() * Math.PI * 2,
         });
       }
@@ -579,7 +579,7 @@ export default function GreatHallScene() {
       arr.push({
         pos: [
           (Math.random() - 0.5) * (hw * 1.6),
-          5 + Math.random() * 4,
+          6 + Math.random() * 6,
           (Math.random() - 0.5) * (hd * 2 - 6),
         ],
         phase: Math.random() * Math.PI * 2,
@@ -651,7 +651,7 @@ export default function GreatHallScene() {
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
       {/* North wall stone blocks */}
-      {Array.from({ length: 10 }, (_, row) => {
+      {Array.from({ length: 14 }, (_, row) => {
         const y = 0.4 + row * 0.95;
         const offset = row % 2 === 0 ? 0 : 1;
         const blockW = 2;
@@ -675,7 +675,7 @@ export default function GreatHallScene() {
         <meshStandardMaterial color="#7a6a58" roughness={0.95} />
       </mesh>
       {/* South wall stone blocks — individual blocks on inner face */}
-      {Array.from({ length: 10 }, (_, row) => {
+      {Array.from({ length: 14 }, (_, row) => {
         const y = 0.4 + row * 0.95;
         const offset = row % 2 === 0 ? 0 : 1;
         const blockW = 2;
@@ -700,7 +700,7 @@ export default function GreatHallScene() {
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
       {/* West wall stone blocks */}
-      {Array.from({ length: 10 }, (_, row) => {
+      {Array.from({ length: 14 }, (_, row) => {
         const y = 0.4 + row * 0.95;
         const offset = row % 2 === 0 ? 0 : 1;
         const blockW = 2;
@@ -724,7 +724,7 @@ export default function GreatHallScene() {
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
       {/* East wall stone blocks */}
-      {Array.from({ length: 10 }, (_, row) => {
+      {Array.from({ length: 14 }, (_, row) => {
         const y = 0.4 + row * 0.95;
         const offset = row % 2 === 0 ? 0 : 1;
         const blockW = 2;
@@ -779,14 +779,14 @@ export default function GreatHallScene() {
         const z = -hd + 5.5 + i * 5;
         return (
           <group key={`windows-${i}`}>
-            <NightSkyWindow position={[-hw + 0.1, 5, z]} facing="east" showMoon={false} seed={i} />
-            <NightSkyWindow position={[hw - 0.1, 5, z]} facing="west" showMoon={false} seed={i + 10} />
+            <NightSkyWindow position={[-hw + 0.1, 7, z]} facing="east" showMoon={false} seed={i} />
+            <NightSkyWindow position={[hw - 0.1, 7, z]} facing="west" showMoon={false} seed={i + 10} />
           </group>
         );
       })}
 
       {/* ═══ Stained Glass Window (far north wall) ═══ */}
-      <StainedGlassWindow position={[0, 4, -hd + 0.3]} />
+      <StainedGlassWindow position={[0, 6, -hd + 0.3]} />
 
       {/* ═══ Head Table (raised platform at north end) ═══ */}
       {/* Platform */}
@@ -808,18 +808,18 @@ export default function GreatHallScene() {
 
       {/* ═══ House Banners ═══ */}
       {/* Front (north) wall banners — flanking the stained glass window */}
-      <HouseBanner position={[-8, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#8b0000" emblemColor="#ffd700" /> {/* Gryffindor */}
-      <HouseBanner position={[-4.5, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#c4a033" emblemColor="#1a1a1a" /> {/* Hufflepuff */}
-      <HouseBanner position={[4.5, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#1a3a6a" emblemColor="#c9792e" /> {/* Ravenclaw */}
-      <HouseBanner position={[8, 7.5, -hd + 0.3]} rotation={[0, 0, 0]} color="#1a5a1a" emblemColor="#c0c0c0" /> {/* Slytherin */}
+      <HouseBanner position={[-8, 11, -hd + 0.3]} rotation={[0, 0, 0]} color="#8b0000" emblemColor="#ffd700" /> {/* Gryffindor */}
+      <HouseBanner position={[-4.5, 11, -hd + 0.3]} rotation={[0, 0, 0]} color="#c4a033" emblemColor="#1a1a1a" /> {/* Hufflepuff */}
+      <HouseBanner position={[4.5, 11, -hd + 0.3]} rotation={[0, 0, 0]} color="#1a3a6a" emblemColor="#c9792e" /> {/* Ravenclaw */}
+      <HouseBanner position={[8, 11, -hd + 0.3]} rotation={[0, 0, 0]} color="#1a5a1a" emblemColor="#c0c0c0" /> {/* Slytherin */}
 
       {/* ═══ Wall Torches (only 3 per side for performance) ═══ */}
       {Array.from({ length: 3 }, (_, i) => {
         const z = -hd + 6 + i * 10;
         return (
           <group key={`torches-${i}`}>
-            <WallTorch position={[-hw + 0.3, 3.5, z]} rotation={[0, Math.PI / 2, 0]} />
-            <WallTorch position={[hw - 0.3, 3.5, z]} rotation={[0, -Math.PI / 2, 0]} />
+            <WallTorch position={[-hw + 0.3, 5, z]} rotation={[0, Math.PI / 2, 0]} />
+            <WallTorch position={[hw - 0.3, 5, z]} rotation={[0, -Math.PI / 2, 0]} />
           </group>
         );
       })}
@@ -828,50 +828,50 @@ export default function GreatHallScene() {
       <group position={[0, 0, hd - 0.2]}>
         {/* ── Deep recessed archway ── */}
         {/* Outer arch frame — darker stone surround */}
-        <mesh position={[0, 4.5, -0.05]}>
-          <boxGeometry args={[7, 9, 0.4]} />
+        <mesh position={[0, 6, -0.05]}>
+          <boxGeometry args={[7, 12, 0.4]} />
           <meshStandardMaterial color="#5a4a38" roughness={0.95} />
         </mesh>
         {/* Inner recess — slightly inset, lighter */}
-        <mesh position={[0, 4.2, -0.2]}>
-          <boxGeometry args={[5.8, 8.2, 0.2]} />
+        <mesh position={[0, 5.5, -0.2]}>
+          <boxGeometry args={[5.8, 11, 0.2]} />
           <meshStandardMaterial color="#6a5a48" roughness={0.92} />
         </mesh>
 
         {/* ── Wooden double doors ── */}
         {/* Left door */}
-        <mesh position={[-1.25, 3.5, -0.35]}>
-          <boxGeometry args={[2.3, 7, 0.12]} />
+        <mesh position={[-1.25, 5, -0.35]}>
+          <boxGeometry args={[2.3, 10, 0.12]} />
           <meshStandardMaterial color="#3a1a08" roughness={0.82} />
         </mesh>
         {/* Right door */}
-        <mesh position={[1.25, 3.5, -0.35]}>
-          <boxGeometry args={[2.3, 7, 0.12]} />
+        <mesh position={[1.25, 5, -0.35]}>
+          <boxGeometry args={[2.3, 10, 0.12]} />
           <meshStandardMaterial color="#3a1a08" roughness={0.82} />
         </mesh>
         {/* Door center seam */}
-        <mesh position={[0, 3.5, -0.4]}>
-          <boxGeometry args={[0.1, 7, 0.05]} />
+        <mesh position={[0, 5, -0.4]}>
+          <boxGeometry args={[0.1, 10, 0.05]} />
           <meshStandardMaterial color="#1a0a04" roughness={0.75} metalness={0.3} />
         </mesh>
 
         {/* Vertical wood planks — left door */}
         {[-2.1, -1.7, -1.3, -0.9, -0.5].map((x, i) => (
-          <mesh key={`lpl-${i}`} position={[x, 3.5, -0.42]}>
-            <boxGeometry args={[0.03, 7, 0.02]} />
+          <mesh key={`lpl-${i}`} position={[x, 5, -0.42]}>
+            <boxGeometry args={[0.03, 10, 0.02]} />
             <meshStandardMaterial color="#2a1208" roughness={0.9} />
           </mesh>
         ))}
         {/* Vertical wood planks — right door */}
         {[0.5, 0.9, 1.3, 1.7, 2.1].map((x, i) => (
-          <mesh key={`lpr-${i}`} position={[x, 3.5, -0.42]}>
-            <boxGeometry args={[0.03, 7, 0.02]} />
+          <mesh key={`lpr-${i}`} position={[x, 5, -0.42]}>
+            <boxGeometry args={[0.03, 10, 0.02]} />
             <meshStandardMaterial color="#2a1208" roughness={0.9} />
           </mesh>
         ))}
 
         {/* Horizontal iron bands across both doors */}
-        {[1.2, 2.8, 4.4, 6.0].map((y, i) => (
+        {[1.5, 3.5, 5.5, 7.5, 9.5].map((y, i) => (
           <mesh key={`band-${i}`} position={[0, y, -0.43]}>
             <boxGeometry args={[5, 0.15, 0.04]} />
             <meshStandardMaterial color="#1a1208" roughness={0.6} metalness={0.5} />
@@ -879,7 +879,7 @@ export default function GreatHallScene() {
         ))}
 
         {/* Iron studs/rivets on bands */}
-        {[1.2, 2.8, 4.4, 6.0].flatMap((y, yi) =>
+        {[1.5, 3.5, 5.5, 7.5, 9.5].flatMap((y, yi) =>
           [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2].map((x, xi) => (
             <mesh key={`rivet-${yi}-${xi}`} position={[x, y, -0.46]}>
               <sphereGeometry args={[0.035, 6, 6]} />
@@ -889,7 +889,7 @@ export default function GreatHallScene() {
         )}
 
         {/* Large iron ring handles */}
-        <group position={[-0.6, 4, -0.46]}>
+        <group position={[-0.6, 5.5, -0.46]}>
           <mesh>
             <torusGeometry args={[0.15, 0.03, 8, 20]} />
             <meshStandardMaterial color="#3a2a18" metalness={0.8} roughness={0.3} />
@@ -900,7 +900,7 @@ export default function GreatHallScene() {
             <meshStandardMaterial color="#2a1a08" metalness={0.7} roughness={0.4} />
           </mesh>
         </group>
-        <group position={[0.6, 4, -0.46]}>
+        <group position={[0.6, 5.5, -0.46]}>
           <mesh>
             <torusGeometry args={[0.15, 0.03, 8, 20]} />
             <meshStandardMaterial color="#3a2a18" metalness={0.8} roughness={0.3} />
@@ -912,14 +912,14 @@ export default function GreatHallScene() {
         </group>
 
         {/* ── Pointed gothic arch top ── */}
-        <mesh position={[0, 8.5, -0.2]} rotation={[0, 0, 0]}>
-          <coneGeometry args={[3, 2, 3]} />
+        <mesh position={[0, 11.5, -0.2]} rotation={[0, 0, 0]}>
+          <coneGeometry args={[3, 2.5, 3]} />
           <meshStandardMaterial color="#5a4a38" roughness={0.92} />
         </mesh>
 
         {/* ── Arch moulding — layered stone rings ── */}
         {[0, -0.08, -0.16].map((zOff, i) => (
-          <mesh key={`mould-${i}`} position={[0, 7.5, -0.1 + zOff]}>
+          <mesh key={`mould-${i}`} position={[0, 10.5, -0.1 + zOff]}>
             <boxGeometry args={[5.8 + i * 0.4, 0.2, 0.08]} />
             <meshStandardMaterial color={i === 0 ? "#6a5a48" : "#5a4a38"} roughness={0.92} />
           </mesh>
@@ -955,10 +955,10 @@ export default function GreatHallScene() {
         ))}
 
         {/* ── Wall torches flanking the door ── */}
-        <WallTorch position={[-5, 4.5, -0.3]} rotation={[0, Math.PI, 0]} />
-        <WallTorch position={[5, 4.5, -0.3]} rotation={[0, Math.PI, 0]} />
-        <WallTorch position={[-3.3, 7, -0.4]} rotation={[0, Math.PI, 0]} />
-        <WallTorch position={[3.3, 7, -0.4]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[-5, 6, -0.3]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[5, 6, -0.3]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[-3.3, 10, -0.4]} rotation={[0, Math.PI, 0]} />
+        <WallTorch position={[3.3, 10, -0.4]} rotation={[0, Math.PI, 0]} />
 
       </group>
 
@@ -970,11 +970,11 @@ export default function GreatHallScene() {
       {/* ═══ Atmospheric Lighting — bright but few lights ═══ */}
       <ambientLight color="#ffeedd" intensity={1.2} />
       {/* 3 main overhead fills */}
-      <pointLight position={[0, 9, 0]} color="#ffbb66" intensity={8} distance={60} decay={0.6} />
-      <pointLight position={[0, 8, -12]} color="#ffaa55" intensity={5} distance={50} decay={0.8} />
-      <pointLight position={[0, 8, 12]} color="#ffaa55" intensity={5} distance={50} decay={0.8} />
+      <pointLight position={[0, 13, 0]} color="#ffbb66" intensity={10} distance={60} decay={0.6} />
+      <pointLight position={[0, 12, -12]} color="#ffaa55" intensity={6} distance={50} decay={0.8} />
+      <pointLight position={[0, 12, 12]} color="#ffaa55" intensity={6} distance={50} decay={0.8} />
       {/* Stained glass accent */}
-      <pointLight position={[0, 6, -hd + 2]} color="#8899cc" intensity={3} distance={25} decay={1} />
+      <pointLight position={[0, 8, -hd + 2]} color="#8899cc" intensity={3} distance={25} decay={1} />
 
       {/* ═══ Table candles (mesh only, no lights) ═══ */}
       {[-7, -3, 3, 7].map((tx) =>
