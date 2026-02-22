@@ -169,7 +169,7 @@ function HouseBanner({
   );
 }
 
-// ─── Stained Glass Window ────────────────────────────────
+// ─── Stained Glass Window (with night sky visible behind) ─
 function StainedGlassWindow({ position }: { position: [number, number, number] }) {
   const lightRef = useRef<THREE.PointLight>(null);
 
@@ -179,17 +179,71 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
     }
   });
 
+  const stars = useMemo(() => {
+    const arr: { x: number; y: number; size: number; brightness: number }[] = [];
+    let s = 9999;
+    const rng = () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
+    for (let i = 0; i < 30; i++) {
+      arr.push({
+        x: (rng() - 0.5) * 4.5,
+        y: (rng() - 0.5) * 5,
+        size: 0.02 + rng() * 0.03,
+        brightness: 0.5 + rng() * 0.5,
+      });
+    }
+    return arr;
+  }, []);
+
   return (
     <group position={position}>
+      {/* ── Night sky backdrop — behind the wall, facing into the room (+z) ── */}
+      <group position={[0, 0.5, -0.3]}>
+        {/* Deep sky */}
+        <mesh>
+          <planeGeometry args={[5.5, 6]} />
+          <meshBasicMaterial color="#0c1a3a" side={THREE.DoubleSide} />
+        </mesh>
+        {/* Upper gradient */}
+        <mesh position={[0, 1.5, 0.01]}>
+          <planeGeometry args={[5.5, 3]} />
+          <meshBasicMaterial color="#132850" transparent opacity={0.6} side={THREE.DoubleSide} />
+        </mesh>
+        {/* Stars */}
+        {stars.map((star, i) => (
+          <mesh key={i} position={[star.x, star.y, 0.02]}>
+            <circleGeometry args={[star.size, 6]} />
+            <meshBasicMaterial color="#ffffff" transparent opacity={star.brightness} side={THREE.DoubleSide} />
+          </mesh>
+        ))}
+        {/* Moon */}
+        <mesh position={[1.2, 1.8, 0.03]}>
+          <circleGeometry args={[0.25, 24]} />
+          <meshBasicMaterial color="#e8eeff" side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[1.2, 1.8, 0.025]}>
+          <circleGeometry args={[0.4, 24]} />
+          <meshBasicMaterial color="#8899cc" transparent opacity={0.2} side={THREE.DoubleSide} />
+        </mesh>
+        {/* Wispy clouds */}
+        <mesh position={[-0.5, 0.5, 0.03]}>
+          <planeGeometry args={[2, 0.3]} />
+          <meshBasicMaterial color="#1a2a55" transparent opacity={0.3} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0.8, -0.5, 0.03]}>
+          <planeGeometry args={[1.5, 0.2]} />
+          <meshBasicMaterial color="#1e2e58" transparent opacity={0.25} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+
       {/* Window frame - pointed gothic arch shape */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[6, 7, 0.3]} />
         <meshStandardMaterial color="#5a4a3a" roughness={0.9} />
       </mesh>
-      {/* Glass panels - main */}
+      {/* Glass panels - main (semi-transparent so sky shows through) */}
       <mesh position={[0, 0.5, 0.1]}>
         <planeGeometry args={[5, 5.5]} />
-        <meshBasicMaterial color="#1a2a5a" transparent opacity={0.7} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#1a2a5a" transparent opacity={0.25} side={THREE.DoubleSide} />
       </mesh>
       {/* Glass panel sections - vertical mullions */}
       {[-1.5, -0.5, 0.5, 1.5].map((x, i) => (
@@ -208,15 +262,15 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
       {/* Colored glass accents */}
       <mesh position={[-1, 2, 0.12]}>
         <circleGeometry args={[0.4, 8]} />
-        <meshBasicMaterial color="#cc3333" transparent opacity={0.6} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#cc3333" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[1, 2, 0.12]}>
         <circleGeometry args={[0.4, 8]} />
-        <meshBasicMaterial color="#33aa33" transparent opacity={0.6} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#33aa33" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0, 2.8, 0.12]}>
         <circleGeometry args={[0.5, 8]} />
-        <meshBasicMaterial color="#ddaa33" transparent opacity={0.6} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#ddaa33" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
       {/* Gold crest/emblem at center */}
       <mesh position={[0, 1, 0.12]}>
