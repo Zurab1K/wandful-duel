@@ -356,22 +356,18 @@ function CameraController({
     // Great Hall dining tables (rendered by GreatHallScene, not in props)
     if (currentRoom.id === "great-hall") {
       const tableXPositions = [-7, -3, 3, 7];
-      const tableZCenter = cz + 2; // table center z offset (use cz, not cx)
-      const tableHalfW = 1.55 + playerRadius; // table + bench width
-      const tableHalfD = 14 + playerRadius; // half length
+      const tableZCenter = cz + 2;
+      const tableHalfW = 1.35 + playerRadius; // slightly tighter than visual to allow passage
+      const tableHalfD = 14 + playerRadius;
       for (const tx of tableXPositions) {
         const wx = tx + cx;
         const wz = tableZCenter;
         if (newX > wx - tableHalfW && newX < wx + tableHalfW && newZ > wz - tableHalfD && newZ < wz + tableHalfD) {
+          // Slide along table: only push out on X axis (never block Z movement between tables)
           const oL = newX - (wx - tableHalfW);
           const oR = (wx + tableHalfW) - newX;
-          const oF = newZ - (wz - tableHalfD);
-          const oB = (wz + tableHalfD) - newZ;
-          const m = Math.min(oL, oR, oF, oB);
-          if (m === oL) newX = wx - tableHalfW;
-          else if (m === oR) newX = wx + tableHalfW;
-          else if (m === oF) newZ = wz - tableHalfD;
-          else newZ = wz + tableHalfD;
+          if (oL < oR) newX = wx - tableHalfW;
+          else newX = wx + tableHalfW;
         }
       }
       // Head table collision
