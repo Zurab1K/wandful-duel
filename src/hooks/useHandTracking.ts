@@ -143,9 +143,9 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
             for (let i = 0; i < results.landmarks.length; i++) {
               const lm = results.landmarks[i];
               const handedness =
-                results.handednesses?.[i]?.[0]?.categoryName === "Left"
-                  ? "Right" // Mirror
-                  : "Left";
+                (results.handednesses?.[i]?.[0]?.categoryName as string) === "Left"
+                  ? "Left"
+                  : "Right";
 
               const rawTip = lm[INDEX_TIP];
               const sx = smooth(smoothedRef.current.x, rawTip.x);
