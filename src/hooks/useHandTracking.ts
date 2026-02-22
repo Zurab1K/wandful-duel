@@ -71,7 +71,8 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
 
   const handLandmarkerRef = useRef<any>(null);
   const animFrameRef = useRef<number>(0);
-  const smoothedRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const smoothedLeftRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const smoothedRightRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const trailRef = useRef<Array<{ x: number; y: number; t: number }>>([]);
   const lastTimestampRef = useRef<number>(0);
 
@@ -153,17 +154,19 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
                   : "Right";
 
               const rawTip = lm[INDEX_TIP];
-              const sx = smooth(smoothedRef.current.x, rawTip.x);
-              const sy = smooth(smoothedRef.current.y, rawTip.y);
-              smoothedRef.current = { x: sx, y: sy };
+              const smoothRef = handedness === "Right" ? smoothedRightRef : smoothedLeftRef;
+              const sx = smooth(smoothRef.current.x, rawTip.x);
+              const sy = smooth(smoothRef.current.y, rawTip.y);
+              smoothRef.current = { x: sx, y: sy };
 
               const gesture = detectGesture(lm, handedness);
 
-              // Add to trail
-              trailRef.current.push({ x: sx, y: sy, t: now });
-              // Keep last 60 points
-              if (trailRef.current.length > 60) {
-                trailRef.current = trailRef.current.slice(-60);
+              // Only track trail for wand hand (Right)
+              if (handedness === "Right") {
+                trailRef.current.push({ x: sx, y: sy, t: now });
+                if (trailRef.current.length > 60) {
+                  trailRef.current = trailRef.current.slice(-60);
+                }
               }
 
               hands.push({
