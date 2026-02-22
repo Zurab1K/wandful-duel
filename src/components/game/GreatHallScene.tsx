@@ -650,6 +650,25 @@ export default function GreatHallScene() {
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
+      {/* North wall stone blocks */}
+      {Array.from({ length: 10 }, (_, row) => {
+        const y = 0.4 + row * 0.95;
+        const offset = row % 2 === 0 ? 0 : 1;
+        const blockW = 2;
+        const numBlocks = Math.ceil((hw * 2) / blockW) + 1;
+        return Array.from({ length: numBlocks }, (_, col) => {
+          const x = -hw + offset + col * blockW;
+          if (x < -hw - 1 || x > hw + 1) return null;
+          const shade = ((row * 7 + col * 13) % 5);
+          const colors = ["#8a7a68", "#7e7060", "#857565", "#6e6050", "#8a7a6a"];
+          return (
+            <mesh key={`nb-${row}-${col}`} position={[x, y, -hd + 0.22]}>
+              <boxGeometry args={[blockW - 0.06, 0.9, 0.05]} />
+              <meshStandardMaterial color={colors[shade]} roughness={0.95} />
+            </mesh>
+          );
+        });
+      })}
       {/* South wall (entrance) — base */}
       <mesh position={[0, wallH / 2, hd]}>
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
@@ -680,11 +699,49 @@ export default function GreatHallScene() {
         <boxGeometry args={[0.4, wallH, hd * 2]} />
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
+      {/* West wall stone blocks */}
+      {Array.from({ length: 10 }, (_, row) => {
+        const y = 0.4 + row * 0.95;
+        const offset = row % 2 === 0 ? 0 : 1;
+        const blockW = 2;
+        const numBlocks = Math.ceil((hd * 2) / blockW) + 1;
+        return Array.from({ length: numBlocks }, (_, col) => {
+          const z = -hd + offset + col * blockW;
+          if (z < -hd - 1 || z > hd + 1) return null;
+          const shade = ((row * 7 + col * 13) % 5);
+          const colors = ["#8a7a68", "#7e7060", "#857565", "#6e6050", "#8a7a6a"];
+          return (
+            <mesh key={`wb-${row}-${col}`} position={[-hw + 0.22, y, z]}>
+              <boxGeometry args={[0.05, 0.9, blockW - 0.06]} />
+              <meshStandardMaterial color={colors[shade]} roughness={0.95} />
+            </mesh>
+          );
+        });
+      })}
       {/* East wall */}
       <mesh position={[hw, wallH / 2, 0]}>
         <boxGeometry args={[0.4, wallH, hd * 2]} />
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
+      {/* East wall stone blocks */}
+      {Array.from({ length: 10 }, (_, row) => {
+        const y = 0.4 + row * 0.95;
+        const offset = row % 2 === 0 ? 0 : 1;
+        const blockW = 2;
+        const numBlocks = Math.ceil((hd * 2) / blockW) + 1;
+        return Array.from({ length: numBlocks }, (_, col) => {
+          const z = -hd + offset + col * blockW;
+          if (z < -hd - 1 || z > hd + 1) return null;
+          const shade = ((row * 7 + col * 13) % 5);
+          const colors = ["#8a7a68", "#7e7060", "#857565", "#6e6050", "#8a7a6a"];
+          return (
+            <mesh key={`eb-${row}-${col}`} position={[hw - 0.22, y, z]}>
+              <boxGeometry args={[0.05, 0.9, blockW - 0.06]} />
+              <meshStandardMaterial color={colors[shade]} roughness={0.95} />
+            </mesh>
+          );
+        });
+      })}
       {/* Wall wainscoting / lower wood paneling */}
       <mesh position={[-hw + 0.15, 1.2, 0]}>
         <boxGeometry args={[0.12, 2.4, hd * 2 - 1]} />
