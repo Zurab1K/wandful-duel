@@ -1,11 +1,11 @@
 import { useRef, useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useHandTracking } from "@/hooks/useHandTracking";
 import { INITIAL_GAME_STATE, SPELLS, type GameState } from "@/lib/spells";
 import { recognizeGesture, gestureToSpell, type SpellGesture } from "@/lib/gestureRecognizer";
 import SpellHUD from "@/components/game/SpellHUD";
 import WandCanvas from "@/components/game/WandCanvas";
-import DungeonScene from "@/components/game/DungeonScene";
+import FirstPersonWand from "@/components/game/FirstPersonWand";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import arenaBg from "@/assets/arena-bg.jpg";
@@ -18,6 +18,8 @@ const WEBCAM_H = 180;
 
 export default function DuelArena() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const opponentInfo = (location.state as any)?.opponent || { name: "Dark Wizard", title: "Unknown", level: 5 };
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
@@ -219,10 +221,10 @@ export default function DuelArena() {
       {/* Dark overlay for atmosphere */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/70 via-black/30 to-black/50" />
 
-      {/* 3D Scene overlay (spell effects, shield, opponent) */}
+      {/* First-person wand overlay */}
       {isTracking && (
-        <DungeonScene
-          wandScreenPos={wandTip}
+        <FirstPersonWand
+          wandTip={wandTip}
           spellActive={spellActive}
           spellColor={activeSpellColor}
           shieldActive={gameState.shieldActive}
@@ -231,7 +233,7 @@ export default function DuelArena() {
 
       {/* HUD */}
       {isTracking && (
-        <SpellHUD gameState={gameState} detectedGesture={currentGesture} />
+        <SpellHUD gameState={gameState} detectedGesture={currentGesture} opponentName={opponentInfo.name} />
       )}
 
       {/* Webcam - always rendered so ref stays stable */}
@@ -317,9 +319,9 @@ export default function DuelArena() {
                 variant="spell"
                 size="lg"
                 className="w-full"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/map")}
               >
-                ← Back to Hall
+                ← Back to Map
               </Button>
             </div>
 
@@ -354,7 +356,7 @@ export default function DuelArena() {
           <Button
             variant="spell"
             size="sm"
-            onClick={() => { stopTracking(); navigate("/"); }}
+            onClick={() => { stopTracking(); navigate("/map"); }}
           >
             ✕ Exit
           </Button>
