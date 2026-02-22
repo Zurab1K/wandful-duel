@@ -650,49 +650,31 @@ export default function GreatHallScene() {
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
-      {/* South wall (entrance) — dark mortar base */}
+      {/* South wall (entrance) — base */}
       <mesh position={[0, wallH / 2, hd]}>
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
-        <meshStandardMaterial color="#3a3028" roughness={1} />
+        <meshStandardMaterial color="#7a6a58" roughness={0.95} />
       </mesh>
-      {/* South wall stone blocks — varied sizes with depth */}
-      {useMemo(() => {
-        const blocks: JSX.Element[] = [];
-        let s = 42;
-        const rng = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
-        const colors = [
-          "#8a7a68", "#7e7060", "#857565", "#6e6050", "#8a7a6a",
-          "#928270", "#746454", "#9a8a78", "#685848", "#7a6a5c",
-        ];
-
-        let y = 0.08;
-        let row = 0;
-        while (y < wallH - 0.2) {
-          const blockH = 0.55 + rng() * 0.35; // varied height
-          let x = -hw + 0.1;
-          const offset = row % 2 === 0 ? 0 : 0.6 + rng() * 0.8;
-          x += offset;
-          while (x < hw - 0.2) {
-            const blockW = 1.2 + rng() * 1.4; // varied width
-            const depthVar = 0.02 + rng() * 0.04;
-            const colorIdx = Math.floor(rng() * colors.length);
-            const bx = Math.min(x + blockW / 2, hw - 0.3);
-            const actualW = Math.min(blockW, (hw - 0.1) - x);
-            if (actualW > 0.3) {
-              blocks.push(
-                <mesh key={`sb-${row}-${x.toFixed(1)}`} position={[bx - hw + hw, y + blockH / 2, hd - 0.2 - depthVar]}>
-                  <boxGeometry args={[actualW - 0.07, blockH - 0.06, 0.06 + depthVar]} />
-                  <meshStandardMaterial color={colors[colorIdx]} roughness={0.88 + rng() * 0.12} />
-                </mesh>
-              );
-            }
-            x += blockW + 0.05; // mortar gap
-          }
-          y += blockH + 0.04; // mortar gap between rows
-          row++;
-        }
-        return blocks;
-      }, [])}
+      {/* South wall stone blocks — individual blocks on inner face */}
+      {Array.from({ length: 10 }, (_, row) => {
+        const y = 0.4 + row * 0.95;
+        const offset = row % 2 === 0 ? 0 : 1;
+        const blockW = 2;
+        const numBlocks = Math.ceil((hw * 2) / blockW) + 1;
+        return Array.from({ length: numBlocks }, (_, col) => {
+          const x = -hw + offset + col * blockW;
+          if (x < -hw - 1 || x > hw + 1) return null;
+          // Slight random shade variation per block
+          const shade = ((row * 7 + col * 13) % 5);
+          const colors = ["#8a7a68", "#7e7060", "#857565", "#6e6050", "#8a7a6a"];
+          return (
+            <mesh key={`sb-${row}-${col}`} position={[x, y, hd - 0.22]}>
+              <boxGeometry args={[blockW - 0.06, 0.9, 0.05]} />
+              <meshStandardMaterial color={colors[shade]} roughness={0.95} />
+            </mesh>
+          );
+        });
+      })}
       {/* West wall */}
       <mesh position={[-hw, wallH / 2, 0]}>
         <boxGeometry args={[0.4, wallH, hd * 2]} />
