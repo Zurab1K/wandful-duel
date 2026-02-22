@@ -57,30 +57,29 @@ export default function HogwartsExplore() {
   // ─── Left hand → movement input ───────────────────
   useEffect(() => {
     if (!navHand?.landmarks || !isTracking) {
-      // Smoothly decay to zero instead of snapping
-      smoothedInput.current.forward *= 0.85;
-      smoothedInput.current.turn *= 0.85;
-      if (Math.abs(smoothedInput.current.forward) < 0.01) smoothedInput.current.forward = 0;
-      if (Math.abs(smoothedInput.current.turn) < 0.01) smoothedInput.current.turn = 0;
-      moveInput.current = { forward: smoothedInput.current.forward, turn: smoothedInput.current.turn, sprint: false };
+      // No hand detected — immediately zero out
+      smoothedInput.current.forward = 0;
+      smoothedInput.current.turn = 0;
+      moveInput.current = { forward: 0, turn: 0, sprint: false };
       return;
     }
 
-    // Use wrist position (landmark 0) — stable regardless of gesture
     const wrist = navHand.landmarks[0];
     if (!wrist) {
-      moveInput.current = { forward: smoothedInput.current.forward, turn: smoothedInput.current.turn, sprint: false };
+      smoothedInput.current.forward = 0;
+      smoothedInput.current.turn = 0;
+      moveInput.current = { forward: 0, turn: 0, sprint: false };
       return;
     }
 
     const hx = wrist.x; // 0–1 (mirrored camera)
     const hy = wrist.y; // 0–1
 
-    // Wider deadzone for turning to prevent accidental spin
-    const FWD_DEAD_LO = 0.35;
-    const FWD_DEAD_HI = 0.65;
-    const TURN_DEAD_LO = 0.3;
-    const TURN_DEAD_HI = 0.7;
+    // Wide deadzone — hand must move significantly from center to trigger movement
+    const FWD_DEAD_LO = 0.30;
+    const FWD_DEAD_HI = 0.70;
+    const TURN_DEAD_LO = 0.25;
+    const TURN_DEAD_HI = 0.75;
 
     // Y axis: hand up (low y) = forward, hand down (high y) = backward
     let rawForward = 0;
@@ -92,7 +91,7 @@ export default function HogwartsExplore() {
     if (hx < TURN_DEAD_LO) rawTurn = (TURN_DEAD_LO - hx) / TURN_DEAD_LO;
     else if (hx > TURN_DEAD_HI) rawTurn = -(hx - TURN_DEAD_HI) / (1 - TURN_DEAD_HI);
 
-    // Apply quadratic curve for finer control near center
+    // Quadratic curve for finer control near center
     rawForward = Math.sign(rawForward) * rawForward * rawForward;
     rawTurn = Math.sign(rawTurn) * rawTurn * rawTurn;
 
@@ -100,14 +99,21 @@ export default function HogwartsExplore() {
     rawForward = Math.max(-1, Math.min(1, rawForward));
     rawTurn = Math.max(-1, Math.min(1, rawTurn));
 
-    // Exponential smoothing (lerp toward target) — prevents jitter and spinning
-    const SMOOTH_FACTOR = 0.15;
-    smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * SMOOTH_FACTOR;
-    smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * SMOOTH_FACTOR;
+    // If raw input is zero (inside deadzone), snap smoothed to zero immediately
+    if (rawForward === 0) {
+      smoothedInput.current.forward = 0;
+    } else {
+      smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * 0.15;
+    }
+    if (rawTurn === 0) {
+      smoothedInput.current.turn = 0;
+    } else {
+      smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * 0.15;
+    }
 
-    // Kill very small values to prevent drift
-    if (Math.abs(smoothedInput.current.forward) < 0.02) smoothedInput.current.forward = 0;
-    if (Math.abs(smoothedInput.current.turn) < 0.02) smoothedInput.current.turn = 0;
+    // Kill very small values
+    if (Math.abs(smoothedInput.current.forward) < 0.03) smoothedInput.current.forward = 0;
+    if (Math.abs(smoothedInput.current.turn) < 0.03) smoothedInput.current.turn = 0;
 
     const sprint = navHand.gesture === "fist";
 
