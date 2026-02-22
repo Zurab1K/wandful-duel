@@ -92,23 +92,19 @@ export default function HogwartsExplore() {
     const dx = headPose.x - cx; // positive = leaning right (in camera coords)
     const dy = headPose.y - cy; // positive = leaning down/forward
 
-    // Deadzones
-    const FORWARD_DEAD = 0.03;
-    const TURN_DEAD = 0.04;
+    // Deadzones (smaller = more sensitive)
+    const FORWARD_DEAD = 0.015;
+    const TURN_DEAD = 0.02;
 
     // Y axis: leaning back (head goes up = lower y) = walk forward, leaning forward = backward
     let rawForward = 0;
-    if (dy > FORWARD_DEAD) rawForward = Math.min(1, (dy - FORWARD_DEAD) * 8);
-    else if (dy < -FORWARD_DEAD) rawForward = Math.max(-1, -(-dy - FORWARD_DEAD) * 8);
+    if (dy > FORWARD_DEAD) rawForward = Math.min(1, (dy - FORWARD_DEAD) * 14);
+    else if (dy < -FORWARD_DEAD) rawForward = Math.max(-1, -(-dy - FORWARD_DEAD) * 14);
 
     // X axis: invert turn direction
     let rawTurn = 0;
-    if (dx > TURN_DEAD) rawTurn = Math.max(-1, -(dx - TURN_DEAD) * 6);
-    else if (dx < -TURN_DEAD) rawTurn = Math.min(1, (-dx - TURN_DEAD) * 6);
-
-    // Quadratic for finer control
-    rawForward = Math.sign(rawForward) * rawForward * rawForward;
-    rawTurn = Math.sign(rawTurn) * rawTurn * rawTurn;
+    if (dx > TURN_DEAD) rawTurn = Math.max(-1, -(dx - TURN_DEAD) * 10);
+    else if (dx < -TURN_DEAD) rawTurn = Math.min(1, (-dx - TURN_DEAD) * 10);
 
     // Smooth
     if (rawForward === 0) {
