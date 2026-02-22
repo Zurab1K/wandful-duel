@@ -141,29 +141,38 @@ function HouseBanner({
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Banner pole */}
-      <mesh position={[0, 0.1, 0]}>
-        <cylinderGeometry args={[0.04, 0.04, 2.5, 6]} />
+      {/* Banner pole (horizontal, at top) */}
+      <mesh position={[0, 0.1, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.04, 0.04, 1.4, 6]} />
         <meshStandardMaterial color="#3a2a1a" metalness={0.4} roughness={0.6} />
       </mesh>
-      {/* Banner fabric */}
-      <mesh ref={meshRef} position={[0, -1.5, 0.05]}>
-        <planeGeometry args={[1.8, 3.5]} />
+      {/* Banner fabric — tall and narrow */}
+      <mesh ref={meshRef} position={[0, -3, 0.05]}>
+        <planeGeometry args={[1.2, 6]} />
         <meshStandardMaterial color={color} roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
       {/* Shield/emblem shape */}
-      <mesh position={[0, -1.3, 0.08]}>
+      <mesh position={[0, -2, 0.08]}>
         <circleGeometry args={[0.35, 6]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} metalness={0.3} side={THREE.DoubleSide} />
       </mesh>
-      {/* Border stripes */}
-      <mesh position={[0, -1.5, 0.06]}>
-        <planeGeometry args={[1.9, 0.08]} />
+      {/* Border stripes (horizontal) */}
+      <mesh position={[0, -0.5, 0.06]}>
+        <planeGeometry args={[1.3, 0.08]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[0, -0.5, 0.06]}>
-        <planeGeometry args={[1.9, 0.08]} />
+      <mesh position={[0, -3, 0.06]}>
+        <planeGeometry args={[1.3, 0.08]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0, -5.5, 0.06]}>
+        <planeGeometry args={[1.3, 0.08]} />
+        <meshStandardMaterial color={emblemColor} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Pointed bottom tip */}
+      <mesh position={[0, -6.2, 0.05]} rotation={[0, 0, Math.PI / 4]}>
+        <planeGeometry args={[0.6, 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
