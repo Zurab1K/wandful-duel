@@ -2,63 +2,39 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-// ─── Floating Candle (with wax drips & glow) ────────────
+// ─── Floating Candle (visual only — NO pointLight for performance) ────
 function FloatingCandle({ position, phase }: { position: [number, number, number]; phase: number }) {
   const groupRef = useRef<THREE.Group>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (groupRef.current) {
       groupRef.current.position.y = position[1] + Math.sin(t * 0.8 + phase) * 0.12;
-      // Very subtle rotation drift
-      groupRef.current.rotation.z = Math.sin(t * 0.4 + phase * 2) * 0.02;
-    }
-    if (lightRef.current) {
-      lightRef.current.intensity = 2.5 + Math.sin(t * 6 + phase) * 0.6 + Math.sin(t * 11 + phase * 3) * 0.3;
     }
   });
 
   return (
     <group ref={groupRef} position={position}>
       {/* Candle body */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.035, 0.045, 0.55, 8]} />
-        <meshStandardMaterial color="#f5e6c8" roughness={0.5} emissive="#f5e6c8" emissiveIntensity={0.05} />
+      <mesh>
+        <cylinderGeometry args={[0.035, 0.045, 0.55, 6]} />
+        <meshStandardMaterial color="#f5e6c8" roughness={0.5} emissive="#f5e6c8" emissiveIntensity={0.1} />
       </mesh>
-      {/* Wax drip 1 */}
-      <mesh position={[0.03, 0.15, 0.01]}>
-        <sphereGeometry args={[0.015, 6, 6]} />
-        <meshStandardMaterial color="#f0ddb8" roughness={0.5} />
-      </mesh>
-      {/* Wax drip 2 */}
-      <mesh position={[-0.02, 0.05, -0.02]}>
-        <sphereGeometry args={[0.012, 6, 6]} />
-        <meshStandardMaterial color="#eedcb0" roughness={0.5} />
-      </mesh>
-      {/* Flame core */}
+      {/* Flame core — emissive, no light */}
       <mesh position={[0, 0.34, 0]} scale={[1, 1.5, 1]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.95} />
+        <sphereGeometry args={[0.035, 6, 6]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
-      {/* Flame outer */}
+      {/* Flame outer glow */}
       <mesh position={[0, 0.38, 0]} scale={[0.8, 1.8, 0.8]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
+        <sphereGeometry args={[0.04, 6, 6]} />
         <meshBasicMaterial color="#ffaa22" transparent opacity={0.7} />
       </mesh>
-      {/* Flame glow halo */}
-      <mesh position={[0, 0.36, 0]} scale={[1.5, 1.5, 1.5]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshBasicMaterial color="#ff8811" transparent opacity={0.15} />
+      {/* Glow halo */}
+      <mesh position={[0, 0.36, 0]} scale={[2, 2, 2]}>
+        <sphereGeometry args={[0.06, 6, 6]} />
+        <meshBasicMaterial color="#ff8811" transparent opacity={0.08} />
       </mesh>
-      <pointLight
-        ref={lightRef}
-        position={[0, 0.35, 0]}
-        color="#ffaa44"
-        intensity={2.5}
-        distance={10}
-        decay={1.8}
-      />
     </group>
   );
 }
@@ -384,22 +360,22 @@ export default function GreatHallScene() {
   // Generate floating candle positions — more candles, clustered over tables
   const candles = useMemo(() => {
     const arr: { pos: [number, number, number]; phase: number }[] = [];
-    // Candles above tables
+    // Candles above tables — fewer per table
     const tableXs = [-7, -3, 3, 7];
     for (const tx of tableXs) {
-      for (let j = 0; j < 12; j++) {
+      for (let j = 0; j < 6; j++) {
         arr.push({
-          pos: [tx + (Math.random() - 0.5) * 1.5, 4 + Math.random() * 4.5, -12 + j * 2.5 + Math.random()],
+          pos: [tx + (Math.random() - 0.5) * 1.5, 4 + Math.random() * 4.5, -12 + j * 5 + Math.random()],
           phase: Math.random() * Math.PI * 2,
         });
       }
     }
-    // Scattered candles in the aisle and higher up
-    for (let i = 0; i < 30; i++) {
+    // A few scattered aisle candles
+    for (let i = 0; i < 10; i++) {
       arr.push({
         pos: [
-          (Math.random() - 0.5) * 6,
-          5.5 + Math.random() * 3.5,
+          (Math.random() - 0.5) * 5,
+          6 + Math.random() * 3,
           (Math.random() - 0.5) * (hd * 2 - 6),
         ],
         phase: Math.random() * Math.PI * 2,
@@ -566,9 +542,9 @@ export default function GreatHallScene() {
       <HouseBanner position={[hw - 0.3, 7.5, 4]} rotation={[0, -Math.PI / 2, 0]} color="#c4a033" emblemColor="#1a1a1a" /> {/* Hufflepuff */}
       <HouseBanner position={[hw - 0.3, 7.5, 10]} rotation={[0, -Math.PI / 2, 0]} color="#1a3a6a" emblemColor="#c9792e" /> {/* Ravenclaw */}
 
-      {/* ═══ Wall Torches ═══ */}
-      {Array.from({ length: 7 }, (_, i) => {
-        const z = -hd + 4 + i * 5;
+      {/* ═══ Wall Torches (only 3 per side for performance) ═══ */}
+      {Array.from({ length: 3 }, (_, i) => {
+        const z = -hd + 6 + i * 10;
         return (
           <group key={`torches-${i}`}>
             <WallTorch position={[-hw + 0.3, 3.5, z]} rotation={[0, Math.PI / 2, 0]} />
@@ -582,28 +558,16 @@ export default function GreatHallScene() {
         <FloatingCandle key={i} position={c.pos} phase={c.phase} />
       ))}
 
-      {/* ═══ Atmospheric Lighting — BRIGHT warm ═══ */}
-      <ambientLight color="#ffeedd" intensity={0.8} />
-      {/* Main overhead fills — high intensity, low decay */}
-      <pointLight position={[0, 9, 0]} color="#ffbb66" intensity={6} distance={50} decay={0.8} />
-      <pointLight position={[0, 8, -10]} color="#ffaa55" intensity={5} distance={40} decay={0.8} />
-      <pointLight position={[0, 8, 10]} color="#ffaa55" intensity={5} distance={40} decay={0.8} />
-      {/* Side fills */}
-      <pointLight position={[-8, 6, -8]} color="#ff9944" intensity={4} distance={30} decay={1} />
-      <pointLight position={[8, 6, -8]} color="#ff9944" intensity={4} distance={30} decay={1} />
-      <pointLight position={[-8, 6, 0]} color="#ff9944" intensity={3.5} distance={30} decay={1} />
-      <pointLight position={[8, 6, 0]} color="#ff9944" intensity={3.5} distance={30} decay={1} />
-      <pointLight position={[-8, 6, 8]} color="#ff9944" intensity={4} distance={30} decay={1} />
-      <pointLight position={[8, 6, 8]} color="#ff9944" intensity={4} distance={30} decay={1} />
-      {/* Stained glass cool accent */}
+      {/* ═══ Atmospheric Lighting — bright but few lights ═══ */}
+      <ambientLight color="#ffeedd" intensity={1.2} />
+      {/* 3 main overhead fills */}
+      <pointLight position={[0, 9, 0]} color="#ffbb66" intensity={8} distance={60} decay={0.6} />
+      <pointLight position={[0, 8, -12]} color="#ffaa55" intensity={5} distance={50} decay={0.8} />
+      <pointLight position={[0, 8, 12]} color="#ffaa55" intensity={5} distance={50} decay={0.8} />
+      {/* Stained glass accent */}
       <pointLight position={[0, 6, -hd + 2]} color="#8899cc" intensity={3} distance={25} decay={1} />
-      {/* Table-level warm fills (so tables/plates glow) */}
-      <pointLight position={[-7, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
-      <pointLight position={[-3, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
-      <pointLight position={[3, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
-      <pointLight position={[7, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
 
-      {/* ═══ Table candles (on tables) ═══ */}
+      {/* ═══ Table candles (mesh only, no lights) ═══ */}
       {[-7, -3, 3, 7].map((tx) =>
         Array.from({ length: 6 }, (_, j) => {
           const z = -10 + j * 4;
@@ -611,13 +575,12 @@ export default function GreatHallScene() {
             <group key={`tc-${tx}-${j}`} position={[tx, 0.82, z]}>
               <mesh>
                 <cylinderGeometry args={[0.025, 0.03, 0.2, 6]} />
-                <meshStandardMaterial color="#f5e6c8" roughness={0.5} />
+                <meshStandardMaterial color="#f5e6c8" emissive="#f5e6c8" emissiveIntensity={0.1} roughness={0.5} />
               </mesh>
               <mesh position={[0, 0.13, 0]}>
                 <sphereGeometry args={[0.02, 6, 6]} />
                 <meshBasicMaterial color="#ffcc44" />
               </mesh>
-              <pointLight position={[0, 0.15, 0]} color="#ffaa33" intensity={0.8} distance={4} decay={2} />
             </group>
           );
         })
