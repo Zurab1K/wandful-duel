@@ -95,57 +95,74 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
 
     // Draw head pose indicator
     if (headPose) {
-      if (headPose.faceLandmarks) {
-        // Meaningful facial feature contours using MediaPipe Face Mesh indices
-        const featureContours: number[][] = [
+      if (headPose.faceLandmarks && headPose.faceLandmarks.length >= 468) {
+        const fl = headPose.faceLandmarks;
+
+        // MediaPipe Face Mesh Tesselation connections (subset for clean wireframe)
+        const MESH_CONNECTIONS: [number, number][] = [
+          // Forehead & top
+          [10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],
+          [10,109],[109,67],[67,103],[103,54],[54,21],[21,162],[162,127],[127,234],
+          [10,151],[151,9],[9,8],[8,168],[168,6],[6,197],[197,195],[195,5],
+          // Left eye region
+          [33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],
+          [33,246],[246,161],[161,160],[160,159],[159,158],[158,157],[157,173],[173,133],
+          [130,25],[25,110],[110,24],[24,23],[23,22],[22,26],[26,112],[112,243],
+          // Right eye region
+          [263,249],[249,390],[390,373],[373,374],[374,380],[380,381],[381,382],[382,362],
+          [263,466],[466,388],[388,387],[387,386],[386,385],[385,384],[384,398],[398,362],
+          [359,255],[255,339],[339,254],[254,253],[253,252],[252,256],[256,341],[341,463],
           // Left eyebrow
-          [70, 63, 105, 66, 107, 55, 65],
+          [70,63],[63,105],[105,66],[66,107],[107,55],[55,65],
           // Right eyebrow
-          [300, 293, 334, 296, 336, 285, 295],
-          // Left eye
-          [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7],
-          // Right eye
-          [263, 466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249],
-          // Nose bridge
-          [168, 6, 197, 195, 5],
-          // Nose bottom
-          [48, 115, 220, 45, 4, 275, 440, 344, 278],
-          // Outer lips
-          [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185, 61],
-          // Inner lips
-          [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191, 78],
+          [300,293],[293,334],[334,296],[296,336],[336,285],[285,295],
+          // Nose
+          [168,6],[6,197],[197,195],[195,5],[5,4],
+          [48,115],[115,220],[220,45],[45,4],[4,275],[275,440],[440,344],[344,278],
+          [19,94],[94,2],[2,164],[164,0],
+          // Lips outer
+          [61,146],[146,91],[91,181],[181,84],[84,17],[17,314],[314,405],[405,321],[321,375],[375,291],
+          [61,185],[185,40],[40,39],[39,37],[37,0],[0,267],[267,269],[269,270],[270,409],[409,291],
+          // Lips inner
+          [78,95],[95,88],[88,178],[178,87],[87,14],[14,317],[317,402],[402,318],[318,324],[324,308],
+          [78,191],[191,80],[80,81],[81,82],[82,13],[13,312],[312,311],[311,310],[310,415],[415,308],
           // Jawline
-          [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10],
+          [234,93],[93,132],[132,58],[58,172],[172,136],[136,150],[150,149],[149,176],[176,148],[148,152],
+          [152,377],[377,400],[400,378],[378,379],[379,365],[365,397],[397,288],[288,361],[361,323],[323,454],
+          // Cheek lines
+          [234,127],[127,162],[162,21],[21,54],[54,103],[103,67],[67,109],[109,10],
+          [454,356],[356,389],[389,251],[251,284],[284,332],[332,297],[297,338],[338,10],
+          // Vertical connectors forehead to jaw
+          [151,10],[9,151],[8,9],[168,8],[6,168],
+          [109,67],[338,297],
+          [127,34],[34,143],[143,116],[116,123],[123,147],[147,187],[187,207],[207,206],
+          [356,264],[264,372],[372,345],[345,352],[352,376],[376,411],[411,427],[427,426],
         ];
 
-        ctx.strokeStyle = "rgba(34, 197, 94, 0.3)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(34, 197, 94, 0.25)";
+        ctx.lineWidth = 0.7;
 
-        for (const contour of featureContours) {
-          // Draw connecting lines
+        for (const [a, b] of MESH_CONNECTIONS) {
+          if (a >= fl.length || b >= fl.length) continue;
           ctx.beginPath();
-          for (let i = 0; i < contour.length; i++) {
-            const idx = contour[i];
-            if (idx >= headPose.faceLandmarks.length) continue;
-            const lm = headPose.faceLandmarks[idx];
-            const fx = lm.x * width;
-            const fy = lm.y * height;
-            if (i === 0) ctx.moveTo(fx, fy);
-            else ctx.lineTo(fx, fy);
-          }
+          ctx.moveTo(fl[a].x * width, fl[a].y * height);
+          ctx.lineTo(fl[b].x * width, fl[b].y * height);
           ctx.stroke();
+        }
 
-          // Draw dots at each point
-          for (const idx of contour) {
-            if (idx >= headPose.faceLandmarks.length) continue;
-            const lm = headPose.faceLandmarks[idx];
-            const fx = lm.x * width;
-            const fy = lm.y * height;
-            ctx.beginPath();
-            ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
-            ctx.fill();
-          }
+        // Small dots at key vertices (eyes, nose, lips, jawline)
+        const keyPoints = [
+          33, 133, 263, 362, // eye corners
+          4, 5, 195, // nose
+          61, 291, 0, 17, // lip corners & center
+          10, 152, 234, 454, // top, chin, jaw sides
+        ];
+        for (const idx of keyPoints) {
+          if (idx >= fl.length) continue;
+          ctx.beginPath();
+          ctx.arc(fl[idx].x * width, fl[idx].y * height, 2, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(34, 197, 94, 0.7)";
+          ctx.fill();
         }
       }
     }
