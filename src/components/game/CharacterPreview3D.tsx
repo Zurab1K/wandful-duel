@@ -60,7 +60,7 @@ function SoldierModel({ robeColor, accentColor }: CharacterPreviewProps) {
   });
 
   return (
-    <group ref={groupRef} position={[0, -1, 0]} scale={1}>
+    <group ref={groupRef} position={[0, -0.9, 0]} scale={0.5}>
       <primitive object={gltf.scene} />
     </group>
   );
@@ -76,7 +76,7 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
       <pointLight position={[0, -0.5, -1]} intensity={0.2} color="#aaaacc" />
 
       {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.92, 0]} receiveShadow>
         <circleGeometry args={[1.2, 32]} />
         <meshStandardMaterial color="#2a2520" roughness={0.95} />
       </mesh>
@@ -88,7 +88,7 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
         enableZoom={false}
         minPolarAngle={Math.PI * 0.3}
         maxPolarAngle={Math.PI * 0.6}
-        target={[0, 0, 0]}
+        target={[0, 0.2, 0]}
         autoRotate
         autoRotateSpeed={1.5}
       />
@@ -103,7 +103,7 @@ export default function CharacterPreview3D({ robeColor, accentColor }: Character
       style={{ background: "radial-gradient(ellipse at center, #1a1510 0%, #0a0808 100%)" }}
     >
       <Canvas
-        camera={{ position: [0, 0.3, 2.5], fov: 40 }}
+        camera={{ position: [0, 0.2, 2.5], fov: 40 }}
         gl={{ antialias: true, alpha: false }}
       >
         <CharacterScene robeColor={robeColor} accentColor={accentColor} />
