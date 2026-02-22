@@ -185,24 +185,7 @@ export default function HogwartsExplore() {
     return () => clearInterval(interval);
   }, [isTracking, currentRoom, inDuel]);
 
-  // ─── Start duel with nearby NPC ───────────────────
-  const lastWandGesture = useRef("");
-  useEffect(() => {
-    if (!wandHand || !nearbyNPC || inDuel) return;
-    if (
-      wandHand.gesture !== lastWandGesture.current &&
-      wandHand.gesture === "fist"
-    ) {
-      const npc = currentRoom.npcs.find((n) => n.id === nearbyNPC);
-      if (npc) {
-        setInDuel(true);
-        setDuelOpponent({ name: npc.name, title: npc.title, level: npc.level });
-        setGameState(INITIAL_GAME_STATE);
-        toast({ title: `Duel with ${npc.name}!`, description: npc.title });
-      }
-    }
-    lastWandGesture.current = wandHand?.gesture || "";
-  }, [wandHand, nearbyNPC, inDuel, currentRoom]);
+  // (Duel is now started via the UI button, not fist gesture)
 
   // ─── Spell casting (during duel) ──────────────────
   const castSpell = useCallback(
@@ -379,7 +362,7 @@ export default function HogwartsExplore() {
         </div>
       )}
 
-      {/* NPC encounter */}
+      {/* NPC encounter - duel button */}
       {nearbyNPC && isTracking && !inDuel && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 bg-parchment rounded-lg px-6 py-3 text-center">
           {(() => {
@@ -393,9 +376,19 @@ export default function HogwartsExplore() {
                 <p className="font-body text-xs text-muted-foreground">
                   {npc.title} • Level {npc.level}
                 </p>
-                <p className="font-body text-xs text-foreground/60 mt-1">
-                  ✊ Make a fist to duel!
-                </p>
+                <Button
+                  variant="hero"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => {
+                    setInDuel(true);
+                    setDuelOpponent({ name: npc.name, title: npc.title, level: npc.level });
+                    setGameState(INITIAL_GAME_STATE);
+                    toast({ title: `Duel with ${npc.name}!`, description: npc.title });
+                  }}
+                >
+                  ⚔️ Duel
+                </Button>
               </>
             );
           })()}
