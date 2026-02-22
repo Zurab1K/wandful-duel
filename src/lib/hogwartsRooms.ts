@@ -81,6 +81,10 @@ export const ROOMS: RoomDef[] = [
     doors: [],
     npcs: [
       { id: "hermione", name: "Hermione", title: "Brightest Witch", position: [-3, 0, 2], hostile: false, level: 5, robeColor: "#8b0000" },
+      { id: "ron", name: "Ron", title: "Loyal Friend", position: [-3, 0, -2], hostile: false, level: 3, robeColor: "#8b0000" },
+      { id: "mcgonagall", name: "McGonagall", title: "Transfiguration Master", position: [1, 0, -7], hostile: false, level: 10, robeColor: "#1a4a1a" },
+      { id: "malfoy-gh", name: "Draco", title: "Slytherin Rival", position: [3, 0, 4], hostile: true, level: 4, robeColor: "#1a5a1a" },
+      { id: "dumbledore", name: "Dumbledore", title: "Headmaster", position: [-1, 0, -7], hostile: false, level: 15, robeColor: "#4a2a6a" },
     ],
   },
   {
