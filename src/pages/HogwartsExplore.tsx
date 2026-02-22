@@ -26,7 +26,7 @@ export default function HogwartsExplore() {
   const currentRoom = getRoomById(currentRoomId) || ROOMS[0];
 
   const playerPos = useRef(new THREE.Vector3(0, 1.6, 5));
-  const playerRot = useRef(Math.PI); // facing into the room
+  const playerRot = useRef(0); // facing north
   const moveInput = useRef({ forward: 0, turn: 0, sprint: false });
   const smoothedInput = useRef({ forward: 0, turn: 0 });
 
