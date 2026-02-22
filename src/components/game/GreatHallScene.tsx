@@ -350,6 +350,149 @@ function DiningTable({ position, length = 14 }: { position: [number, number, num
   );
 }
 
+// ─── Night Sky Window ────────────────────────────────────
+function NightSkyWindow({
+  position,
+  facing,
+  showMoon = false,
+  seed = 0,
+}: {
+  position: [number, number, number];
+  facing: "east" | "west";
+  showMoon?: boolean;
+  seed?: number;
+}) {
+  // Deterministic pseudo-random from seed
+  const stars = useMemo(() => {
+    const arr: { y: number; z: number; size: number; brightness: number }[] = [];
+    let s = seed * 1337 + 42;
+    const rng = () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
+    for (let i = 0; i < 18; i++) {
+      arr.push({
+        y: (rng() - 0.5) * 4,
+        z: (rng() - 0.5) * 1.6,
+        size: 0.015 + rng() * 0.025,
+        brightness: 0.5 + rng() * 0.5,
+      });
+    }
+    return arr;
+  }, [seed]);
+
+  const rot: [number, number, number] = facing === "east" ? [0, 0, 0] : [0, Math.PI, 0];
+
+  return (
+    <group position={position} rotation={rot}>
+      {/* Stone window surround/frame */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[0.3, 5.5, 2.4]} />
+        <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+      </mesh>
+      {/* Inner frame recess */}
+      <mesh position={[0.08, 0, 0]}>
+        <boxGeometry args={[0.12, 5, 2]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.95} />
+      </mesh>
+
+      {/* Night sky — deep blue gradient (layered planes) */}
+      {/* Bottom darker */}
+      <mesh position={[0.14, -1, 0]}>
+        <planeGeometry args={[1.8, 2.5]} />
+        <meshBasicMaterial color="#0a1128" side={THREE.DoubleSide} />
+      </mesh>
+      {/* Mid blue */}
+      <mesh position={[0.14, 0.5, 0]}>
+        <planeGeometry args={[1.8, 2]} />
+        <meshBasicMaterial color="#0f1b3d" side={THREE.DoubleSide} />
+      </mesh>
+      {/* Upper lighter blue */}
+      <mesh position={[0.14, 1.5, 0]}>
+        <planeGeometry args={[1.8, 1.5]} />
+        <meshBasicMaterial color="#152652" side={THREE.DoubleSide} />
+      </mesh>
+      {/* Very top — subtle purple-blue horizon glow */}
+      <mesh position={[0.14, -1.8, 0]}>
+        <planeGeometry args={[1.8, 0.8]} />
+        <meshBasicMaterial color="#1a1a40" side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Stars */}
+      {stars.map((star, s) => (
+        <mesh key={s} position={[0.15, star.y, star.z]}>
+          <circleGeometry args={[star.size, 6]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={star.brightness} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+      {/* Brighter prominent stars */}
+      <mesh position={[0.15, 1.2, 0.4]}>
+        <circleGeometry args={[0.04, 8]} />
+        <meshBasicMaterial color="#aaccff" transparent opacity={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0.15, 0.3, -0.5]}>
+        <circleGeometry args={[0.035, 8]} />
+        <meshBasicMaterial color="#ffeedd" transparent opacity={0.85} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Wispy cloud layer */}
+      <mesh position={[0.145, -0.5, 0.2]}>
+        <planeGeometry args={[1.2, 0.3]} />
+        <meshBasicMaterial color="#2a3a6a" transparent opacity={0.25} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0.145, 0.8, -0.3]}>
+        <planeGeometry args={[0.8, 0.2]} />
+        <meshBasicMaterial color="#253560" transparent opacity={0.2} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Moon */}
+      {showMoon && (
+        <>
+          <mesh position={[0.16, 1.3, 0.2]}>
+            <circleGeometry args={[0.22, 24]} />
+            <meshBasicMaterial color="#e8eeff" side={THREE.DoubleSide} />
+          </mesh>
+          {/* Moon glow */}
+          <mesh position={[0.155, 1.3, 0.2]}>
+            <circleGeometry args={[0.35, 24]} />
+            <meshBasicMaterial color="#8899cc" transparent opacity={0.2} side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0.15, 1.3, 0.2]}>
+            <circleGeometry args={[0.55, 24]} />
+            <meshBasicMaterial color="#556699" transparent opacity={0.08} side={THREE.DoubleSide} />
+          </mesh>
+        </>
+      )}
+
+      {/* Stone mullions (vertical dividers) */}
+      <mesh position={[0.16, 0, -0.35]}>
+        <boxGeometry args={[0.06, 5, 0.08]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.16, 0, 0.35]}>
+        <boxGeometry args={[0.06, 5, 0.08]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+      </mesh>
+      {/* Horizontal transoms */}
+      <mesh position={[0.16, 0.8, 0]}>
+        <boxGeometry args={[0.06, 0.08, 1.8]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.16, -0.8, 0]}>
+        <boxGeometry args={[0.06, 0.08, 1.8]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+      </mesh>
+      {/* Pointed arch top */}
+      <mesh position={[0.16, 2.7, 0]} rotation={[0, 0, 0]}>
+        <coneGeometry args={[0.95, 1, 3]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+      </mesh>
+      {/* Sill at bottom */}
+      <mesh position={[0.1, -2.5, 0]}>
+        <boxGeometry args={[0.35, 0.15, 2.4]} />
+        <meshStandardMaterial color="#6a5a48" roughness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
 // ─── The Great Hall Scene ────────────────────────────────
 export default function GreatHallScene() {
   const hw = 12;
@@ -509,94 +652,13 @@ export default function GreatHallScene() {
         );
       })}
 
-      {/* ═══ Night Sky Windows (between pillars on both walls) ═══ */}
+      {/* ═══ Night Sky Windows ═══ */}
       {Array.from({ length: 6 }, (_, i) => {
         const z = -hd + 5.5 + i * 5;
         return (
           <group key={`windows-${i}`}>
-            {/* West wall window */}
-            <group position={[-hw + 0.15, 5.5, z]}>
-              {/* Window frame */}
-              <mesh>
-                <boxGeometry args={[0.15, 4.5, 2]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
-              </mesh>
-              {/* Night sky glass */}
-              <mesh position={[0.05, 0, 0]}>
-                <planeGeometry args={[1.6, 4]} />
-                <meshBasicMaterial color="#070b1a" side={THREE.DoubleSide} />
-              </mesh>
-              {/* Stars */}
-              {Array.from({ length: 8 }, (_, s) => (
-                <mesh key={s} position={[0.06, (Math.random() - 0.5) * 3.5, (Math.random() - 0.5) * 1.4]}>
-                  <sphereGeometry args={[0.02 + Math.random() * 0.02, 4, 4]} />
-                  <meshBasicMaterial color="#ffffff" transparent opacity={0.6 + Math.random() * 0.4} />
-                </mesh>
-              ))}
-              {/* Moon glow (only on window 2) */}
-              {i === 2 && (
-                <>
-                  <mesh position={[0.06, 1, 0.3]}>
-                    <circleGeometry args={[0.25, 16]} />
-                    <meshBasicMaterial color="#ddeeff" side={THREE.DoubleSide} />
-                  </mesh>
-                  <mesh position={[0.06, 1, 0.29]}>
-                    <circleGeometry args={[0.4, 16]} />
-                    <meshBasicMaterial color="#8899bb" transparent opacity={0.2} side={THREE.DoubleSide} />
-                  </mesh>
-                </>
-              )}
-              {/* Mullion (vertical divider) */}
-              <mesh position={[0.07, 0, 0]}>
-                <boxGeometry args={[0.05, 4, 0.06]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
-              </mesh>
-              {/* Horizontal transom */}
-              <mesh position={[0.07, 0.5, 0]}>
-                <boxGeometry args={[0.05, 0.06, 1.6]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
-              </mesh>
-              {/* Pointed arch top */}
-              <mesh position={[0.07, 2.2, 0]}>
-                <coneGeometry args={[0.85, 0.8, 3]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
-              </mesh>
-            </group>
-            {/* East wall window */}
-            <group position={[hw - 0.15, 5.5, z]} rotation={[0, Math.PI, 0]}>
-              <mesh>
-                <boxGeometry args={[0.15, 4.5, 2]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
-              </mesh>
-              <mesh position={[0.05, 0, 0]}>
-                <planeGeometry args={[1.6, 4]} />
-                <meshBasicMaterial color="#070b1a" side={THREE.DoubleSide} />
-              </mesh>
-              {Array.from({ length: 8 }, (_, s) => (
-                <mesh key={s} position={[0.06, (Math.random() - 0.5) * 3.5, (Math.random() - 0.5) * 1.4]}>
-                  <sphereGeometry args={[0.02 + Math.random() * 0.02, 4, 4]} />
-                  <meshBasicMaterial color="#ffffff" transparent opacity={0.6 + Math.random() * 0.4} />
-                </mesh>
-              ))}
-              {i === 4 && (
-                <mesh position={[0.06, 0.8, -0.2]}>
-                  <circleGeometry args={[0.2, 16]} />
-                  <meshBasicMaterial color="#ccddf0" side={THREE.DoubleSide} />
-                </mesh>
-              )}
-              <mesh position={[0.07, 0, 0]}>
-                <boxGeometry args={[0.05, 4, 0.06]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
-              </mesh>
-              <mesh position={[0.07, 0.5, 0]}>
-                <boxGeometry args={[0.05, 0.06, 1.6]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.85} />
-              </mesh>
-              <mesh position={[0.07, 2.2, 0]}>
-                <coneGeometry args={[0.85, 0.8, 3]} />
-                <meshStandardMaterial color="#4a3a28" roughness={0.9} />
-              </mesh>
-            </group>
+            <NightSkyWindow position={[-hw + 0.1, 5, z]} facing="east" showMoon={i === 2} seed={i} />
+            <NightSkyWindow position={[hw - 0.1, 5, z]} facing="west" showMoon={i === 4} seed={i + 10} />
           </group>
         );
       })}
