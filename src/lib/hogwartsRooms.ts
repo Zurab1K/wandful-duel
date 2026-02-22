@@ -78,22 +78,7 @@ export const ROOMS: RoomDef[] = [
       // Head table
       { type: "box", position: [0, 0.5, -8], size: [8, 0.1, 1.5], color: "#6a4a2a", label: "Head Table" },
     ],
-    doors: [
-      {
-        position: [0, 0, 9],
-        wall: "south",
-        targetRoom: "courtyard",
-        spawnPosition: [0, 0, -7],
-        spawnRotation: 0,
-      },
-      {
-        position: [-6, 0, 0],
-        wall: "west",
-        targetRoom: "library",
-        spawnPosition: [5, 0, 0],
-        spawnRotation: Math.PI / 2,
-      },
-    ],
+    doors: [],
     npcs: [
       { id: "hermione", name: "Hermione", title: "Brightest Witch", position: [-3, 0, 2], hostile: false, level: 5, robeColor: "#8b0000" },
     ],
