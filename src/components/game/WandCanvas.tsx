@@ -93,18 +93,20 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
       }
     }
 
-    // Draw head pose indicator
-    if (headPose) {
-      if (headPose.faceLandmarks) {
-        for (let i = 0; i < headPose.faceLandmarks.length; i += 4) {
-          const lm = headPose.faceLandmarks[i];
-          const fx = lm.x * width;
-          const fy = lm.y * height;
-          ctx.beginPath();
-          ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
-          ctx.fill();
-        }
+    // Draw head pose indicator — spatially thinned for even distribution
+    if (headPose && headPose.faceLandmarks) {
+      const gridSize = 0.02; // normalized cell size (~2% of frame)
+      const occupied = new Set<string>();
+      for (const lm of headPose.faceLandmarks) {
+        const cellKey = `${Math.floor(lm.x / gridSize)},${Math.floor(lm.y / gridSize)}`;
+        if (occupied.has(cellKey)) continue;
+        occupied.add(cellKey);
+        const fx = lm.x * width;
+        const fy = lm.y * height;
+        ctx.beginPath();
+        ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
+        ctx.fill();
       }
     }
   }, [hands, wandTrail, width, height, headPose]);
