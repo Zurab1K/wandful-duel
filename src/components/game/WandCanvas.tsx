@@ -96,8 +96,15 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
     // Draw head pose indicator
     if (headPose) {
       if (headPose.faceLandmarks) {
-        for (let i = 0; i < headPose.faceLandmarks.length; i += 4) {
+        const minDist = 0.025; // minimum normalized distance between dots
+        const drawn: Array<{ x: number; y: number }> = [];
+        for (let i = 0; i < headPose.faceLandmarks.length; i++) {
           const lm = headPose.faceLandmarks[i];
+          const tooClose = drawn.some(
+            (d) => Math.hypot(d.x - lm.x, d.y - lm.y) < minDist
+          );
+          if (tooClose) continue;
+          drawn.push({ x: lm.x, y: lm.y });
           const fx = lm.x * width;
           const fy = lm.y * height;
           ctx.beginPath();
