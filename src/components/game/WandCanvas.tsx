@@ -96,7 +96,7 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
     // Draw head pose indicator
     if (headPose) {
       if (headPose.faceLandmarks) {
-        for (let i = 0; i < headPose.faceLandmarks.length; i += 7) {
+        for (let i = 0; i < headPose.faceLandmarks.length; i += 4) {
           const lm = headPose.faceLandmarks[i];
           const fx = lm.x * width;
           const fy = lm.y * height;
@@ -106,23 +106,6 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
           ctx.fill();
         }
       }
-
-      // Nose tip glow
-      const hx = headPose.x * width;
-      const hy = headPose.y * height;
-      const gradient = ctx.createRadialGradient(hx, hy, 0, hx, hy, 14);
-      gradient.addColorStop(0, "rgba(34, 197, 94, 0.9)");
-      gradient.addColorStop(0.5, "rgba(34, 197, 94, 0.3)");
-      gradient.addColorStop(1, "rgba(34, 197, 94, 0)");
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(hx, hy, 14, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(hx, hy, 2, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(34, 197, 94, 1)";
-      ctx.fill();
     }
   }, [hands, wandTrail, width, height, headPose]);
 
