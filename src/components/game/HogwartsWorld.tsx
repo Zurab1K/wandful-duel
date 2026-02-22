@@ -273,16 +273,32 @@ function CameraController({
   currentRoom,
 }: CameraControllerProps) {
   const { camera } = useThree();
+  // Smoothed velocity refs for GTA-like inertia
+  const velocityRef = useRef({ fwd: 0, trn: 0 });
 
   useFrame((_, delta) => {
     const input = moveInput.current;
 
     // Dead-zone: ignore tiny residual values so character stops cleanly
-    const fwd = Math.abs(input.forward) < 0.05 ? 0 : input.forward;
-    const trn = Math.abs(input.turn) < 0.05 ? 0 : input.turn;
+    const targetFwd = Math.abs(input.forward) < 0.05 ? 0 : input.forward;
+    const targetTrn = Math.abs(input.turn) < 0.05 ? 0 : input.turn;
+
+    // Smooth velocity lerp — accelerate faster than decelerate for responsive feel
+    const accel = 0.08;
+    const decel = 0.04;
+    const fwdAlpha = Math.abs(targetFwd) > Math.abs(velocityRef.current.fwd) ? accel : decel;
+    const trnAlpha = Math.abs(targetTrn) > Math.abs(velocityRef.current.trn) ? accel : decel;
+    velocityRef.current.fwd += (targetFwd - velocityRef.current.fwd) * fwdAlpha;
+    velocityRef.current.trn += (targetTrn - velocityRef.current.trn) * trnAlpha;
+
+    // Snap to zero when very close to avoid drift
+    if (Math.abs(velocityRef.current.fwd) < 0.001) velocityRef.current.fwd = 0;
+    if (Math.abs(velocityRef.current.trn) < 0.001) velocityRef.current.trn = 0;
+
+    const fwd = velocityRef.current.fwd;
+    const trn = velocityRef.current.trn;
 
     if (fwd === 0 && trn === 0) {
-      // No input — keep camera in sync but don't move
       camera.position.copy(playerPos.current);
       camera.rotation.set(0, playerRot.current, 0);
       return;
@@ -309,43 +325,43 @@ function CameraController({
     newX = Math.max(cx - hw + margin, Math.min(cx + hw - margin, newX));
     newZ = Math.max(cz - hd + margin, Math.min(cz + hd - margin, newZ));
 
-    // Collision with props (tables, shelves, etc.)
+    // Collision with props (skip for great-hall — it uses dedicated table collision below)
     const playerRadius = 0.5;
-    for (const prop of currentRoom.props) {
-      const px = prop.position[0] + cx;
-      const pz = prop.position[2] + cz;
-      let halfW: number, halfD: number;
-      if (prop.type === "box") {
-        halfW = prop.size[0] / 2 + playerRadius;
-        halfD = prop.size[2] / 2 + playerRadius;
-      } else {
-        halfW = prop.size[0] + playerRadius;
-        halfD = prop.size[0] + playerRadius;
-      }
-      // AABB collision
-      if (newX > px - halfW && newX < px + halfW && newZ > pz - halfD && newZ < pz + halfD) {
-        // Push out on the axis with smallest overlap
-        const overlapLeft = newX - (px - halfW);
-        const overlapRight = (px + halfW) - newX;
-        const overlapFront = newZ - (pz - halfD);
-        const overlapBack = (pz + halfD) - newZ;
-        const minOverlap = Math.min(overlapLeft, overlapRight, overlapFront, overlapBack);
-        if (minOverlap === overlapLeft) newX = px - halfW;
-        else if (minOverlap === overlapRight) newX = px + halfW;
-        else if (minOverlap === overlapFront) newZ = pz - halfD;
-        else newZ = pz + halfD;
+    if (currentRoom.id !== "great-hall") {
+      for (const prop of currentRoom.props) {
+        const px = prop.position[0] + cx;
+        const pz = prop.position[2] + cz;
+        let halfW: number, halfD: number;
+        if (prop.type === "box") {
+          halfW = prop.size[0] / 2 + playerRadius;
+          halfD = prop.size[2] / 2 + playerRadius;
+        } else {
+          halfW = prop.size[0] + playerRadius;
+          halfD = prop.size[0] + playerRadius;
+        }
+        if (newX > px - halfW && newX < px + halfW && newZ > pz - halfD && newZ < pz + halfD) {
+          const overlapLeft = newX - (px - halfW);
+          const overlapRight = (px + halfW) - newX;
+          const overlapFront = newZ - (pz - halfD);
+          const overlapBack = (pz + halfD) - newZ;
+          const minOverlap = Math.min(overlapLeft, overlapRight, overlapFront, overlapBack);
+          if (minOverlap === overlapLeft) newX = px - halfW;
+          else if (minOverlap === overlapRight) newX = px + halfW;
+          else if (minOverlap === overlapFront) newZ = pz - halfD;
+          else newZ = pz + halfD;
+        }
       }
     }
 
     // Great Hall dining tables (rendered by GreatHallScene, not in props)
     if (currentRoom.id === "great-hall") {
       const tableXPositions = [-7, -3, 3, 7];
-      const tableZ = cx + 2; // table center z offset
+      const tableZCenter = cz + 2; // table center z offset (use cz, not cx)
       const tableHalfW = 1.55 + playerRadius; // table + bench width
       const tableHalfD = 14 + playerRadius; // half length
       for (const tx of tableXPositions) {
         const wx = tx + cx;
-        const wz = tableZ;
+        const wz = tableZCenter;
         if (newX > wx - tableHalfW && newX < wx + tableHalfW && newZ > wz - tableHalfD && newZ < wz + tableHalfD) {
           const oL = newX - (wx - tableHalfW);
           const oR = (wx + tableHalfW) - newX;
@@ -357,6 +373,22 @@ function CameraController({
           else if (m === oF) newZ = wz - tableHalfD;
           else newZ = wz + tableHalfD;
         }
+      }
+      // Head table collision
+      const headPx = cx;
+      const headPz = cz - 8;
+      const headHalfW = 4 + playerRadius;
+      const headHalfD = 0.75 + playerRadius;
+      if (newX > headPx - headHalfW && newX < headPx + headHalfW && newZ > headPz - headHalfD && newZ < headPz + headHalfD) {
+        const oL = newX - (headPx - headHalfW);
+        const oR = (headPx + headHalfW) - newX;
+        const oF = newZ - (headPz - headHalfD);
+        const oB = (headPz + headHalfD) - newZ;
+        const m = Math.min(oL, oR, oF, oB);
+        if (m === oL) newX = headPx - headHalfW;
+        else if (m === oR) newX = headPx + headHalfW;
+        else if (m === oF) newZ = headPz - headHalfD;
+        else newZ = headPz + headHalfD;
       }
     }
 
