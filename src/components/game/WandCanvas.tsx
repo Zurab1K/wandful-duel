@@ -95,7 +95,7 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
 
     // Draw head pose indicator — spatially thinned for even distribution
     if (headPose && headPose.faceLandmarks) {
-      const gridSize = 0.02; // normalized cell size (~2% of frame)
+      const gridSize = 0.03; // larger cells = fewer, evenly spaced dots
       const occupied = new Set<string>();
       for (const lm of headPose.faceLandmarks) {
         const cellKey = `${Math.floor(lm.x / gridSize)},${Math.floor(lm.y / gridSize)}`;
