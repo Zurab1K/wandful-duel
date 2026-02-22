@@ -134,8 +134,8 @@ function HouseBanner({
 
   useFrame(({ clock }) => {
     if (meshRef.current) {
-      // Subtle sway
-      meshRef.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.5 + position[0]) * 0.03;
+      // Very subtle sway — barely perceptible
+      meshRef.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.3 + position[0]) * 0.005;
     }
   });
 
