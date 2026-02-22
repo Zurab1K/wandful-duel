@@ -65,15 +65,6 @@ function Wand({ wandTip, spellActive, spellColor }: WandModelProps) {
         </mesh>
       ))}
 
-      {/* Wand tip */}
-      <mesh position={[0, 0.66, 0]}>
-        <sphereGeometry args={[0.018, 12, 12]} />
-        <meshStandardMaterial
-          color={spellActive ? spellColor : "#8a7a6a"}
-          emissive={spellActive ? spellColor : "#000000"}
-          emissiveIntensity={spellActive ? 2 : 0}
-        />
-      </mesh>
 
       {/* Wand tip glow */}
       <pointLight
