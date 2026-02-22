@@ -378,104 +378,118 @@ function NightSkyWindow({
   }, [seed]);
 
   // Facing outward from the wall: east = looking out -x wall, west = looking out +x wall
+  // For east-facing windows on left wall: sky should face +x (into the room)
+  // For west-facing windows on right wall: sky should face -x (into the room)
   const yRot = facing === "east" ? Math.PI / 2 : -Math.PI / 2;
+  // Offset so sky sits just inside the wall surface, visible to the player
+  const skyOffset = facing === "east" ? 0.25 : -0.25;
 
   return (
-    <group position={position} rotation={[0, yRot, 0]}>
-      {/* ── Sky backdrop — all DoubleSide so visible from room ── */}
-      <mesh position={[0, 0, -0.4]}>
-        <planeGeometry args={[1.8, 4.5]} />
-        <meshBasicMaterial color="#0c1a3a" side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, 1.2, -0.39]}>
-        <planeGeometry args={[1.8, 2]} />
-        <meshBasicMaterial color="#132850" side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, -1.8, -0.39]}>
-        <planeGeometry args={[1.8, 1]} />
-        <meshBasicMaterial color="#0a0e24" side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Stars */}
-      {stars.map((star, s) => (
-        <mesh key={s} position={[star.z, star.y, -0.36]}>
-          <circleGeometry args={[star.size, 6]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={star.brightness} side={THREE.DoubleSide} />
+    <group position={position}>
+      {/* ── Sky backdrop — rendered ON the wall, facing inward ── */}
+      <group position={[skyOffset, 0, 0]} rotation={[0, yRot, 0]}>
+        {/* Deep sky base */}
+        <mesh position={[0, 0, 0]}>
+          <planeGeometry args={[1.8, 4.5]} />
+          <meshBasicMaterial color="#0c1a3a" side={THREE.DoubleSide} />
         </mesh>
-      ))}
-      <mesh position={[0.4, 1.0, -0.36]}><circleGeometry args={[0.04, 8]} /><meshBasicMaterial color="#aaccff" side={THREE.DoubleSide} /></mesh>
-      <mesh position={[-0.3, 0.5, -0.36]}><circleGeometry args={[0.03, 8]} /><meshBasicMaterial color="#ffeedd" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
-      <mesh position={[0.5, -0.3, -0.36]}><circleGeometry args={[0.025, 8]} /><meshBasicMaterial color="#ccddff" transparent opacity={0.8} side={THREE.DoubleSide} /></mesh>
+        {/* Upper sky gradient */}
+        <mesh position={[0, 1.2, 0.01]}>
+          <planeGeometry args={[1.8, 2]} />
+          <meshBasicMaterial color="#132850" transparent opacity={0.6} side={THREE.DoubleSide} />
+        </mesh>
+        {/* Lower horizon */}
+        <mesh position={[0, -1.8, 0.01]}>
+          <planeGeometry args={[1.8, 1]} />
+          <meshBasicMaterial color="#0a0e24" transparent opacity={0.5} side={THREE.DoubleSide} />
+        </mesh>
 
-      {/* Wispy clouds */}
-      <mesh position={[-0.2, -0.3, -0.35]}>
-        <planeGeometry args={[1, 0.2]} />
-        <meshBasicMaterial color="#1a2a55" transparent opacity={0.3} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0.3, 0.7, -0.35]}>
-        <planeGeometry args={[0.7, 0.15]} />
-        <meshBasicMaterial color="#1e2e58" transparent opacity={0.25} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Moon */}
-      {showMoon && (
-        <>
-          <mesh position={[0.2, 1.2, -0.34]}>
-            <circleGeometry args={[0.2, 24]} />
-            <meshBasicMaterial color="#e8eeff" side={THREE.DoubleSide} />
+        {/* Stars */}
+        {stars.map((star, s) => (
+          <mesh key={s} position={[star.z, star.y, 0.02]}>
+            <circleGeometry args={[star.size, 6]} />
+            <meshBasicMaterial color="#ffffff" transparent opacity={star.brightness} side={THREE.DoubleSide} />
           </mesh>
-          <mesh position={[0.2, 1.2, -0.35]}>
-            <circleGeometry args={[0.32, 24]} />
-            <meshBasicMaterial color="#8899cc" transparent opacity={0.25} side={THREE.DoubleSide} />
-          </mesh>
-          <mesh position={[0.2, 1.2, -0.36]}>
-            <circleGeometry args={[0.5, 24]} />
-            <meshBasicMaterial color="#445577" transparent opacity={0.1} side={THREE.DoubleSide} />
-          </mesh>
-        </>
-      )}
+        ))}
+        <mesh position={[0.4, 1.0, 0.02]}><circleGeometry args={[0.04, 8]} /><meshBasicMaterial color="#aaccff" side={THREE.DoubleSide} /></mesh>
+        <mesh position={[-0.3, 0.5, 0.02]}><circleGeometry args={[0.03, 8]} /><meshBasicMaterial color="#ffeedd" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
+        <mesh position={[0.5, -0.3, 0.02]}><circleGeometry args={[0.025, 8]} /><meshBasicMaterial color="#ccddff" transparent opacity={0.8} side={THREE.DoubleSide} /></mesh>
 
-      {/* ── Stone frame (IN FRONT of sky, at wall surface) ── */}
-      {/* Top border */}
-      <mesh position={[0, 2.45, 0]}>
-        <boxGeometry args={[2.2, 0.4, 0.5]} />
-        <meshStandardMaterial color="#6a5a48" roughness={0.92} />
-      </mesh>
-      {/* Bottom sill */}
-      <mesh position={[0, -2.45, 0]}>
-        <boxGeometry args={[2.2, 0.4, 0.5]} />
-        <meshStandardMaterial color="#6a5a48" roughness={0.92} />
-      </mesh>
-      {/* Left pillar */}
-      <mesh position={[-1, 0, 0]}>
-        <boxGeometry args={[0.25, 5.3, 0.5]} />
-        <meshStandardMaterial color="#6a5a48" roughness={0.92} />
-      </mesh>
-      {/* Right pillar */}
-      <mesh position={[1, 0, 0]}>
-        <boxGeometry args={[0.25, 5.3, 0.5]} />
-        <meshStandardMaterial color="#6a5a48" roughness={0.92} />
-      </mesh>
-      {/* Pointed arch top */}
-      <mesh position={[0, 2.8, 0]}>
-        <coneGeometry args={[1, 1.2, 3]} />
-        <meshStandardMaterial color="#6a5a48" roughness={0.92} />
-      </mesh>
+        {/* Wispy clouds */}
+        <mesh position={[-0.2, -0.3, 0.03]}>
+          <planeGeometry args={[1, 0.2]} />
+          <meshBasicMaterial color="#1a2a55" transparent opacity={0.3} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0.3, 0.7, 0.03]}>
+          <planeGeometry args={[0.7, 0.15]} />
+          <meshBasicMaterial color="#1e2e58" transparent opacity={0.25} side={THREE.DoubleSide} />
+        </mesh>
 
-      {/* Stone mullion (center vertical) */}
-      <mesh position={[0, 0, -0.15]}>
-        <boxGeometry args={[0.08, 4.5, 0.15]} />
-        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
-      </mesh>
-      {/* Horizontal transoms */}
-      <mesh position={[0, 0.8, -0.15]}>
-        <boxGeometry args={[1.8, 0.07, 0.15]} />
-        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, -0.8, -0.15]}>
-        <boxGeometry args={[1.8, 0.07, 0.15]} />
-        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
-      </mesh>
+        {/* Moon */}
+        {showMoon && (
+          <>
+            <mesh position={[0.2, 1.2, 0.04]}>
+              <circleGeometry args={[0.2, 24]} />
+              <meshBasicMaterial color="#e8eeff" side={THREE.DoubleSide} />
+            </mesh>
+            <mesh position={[0.2, 1.2, 0.03]}>
+              <circleGeometry args={[0.32, 24]} />
+              <meshBasicMaterial color="#8899cc" transparent opacity={0.25} side={THREE.DoubleSide} />
+            </mesh>
+            <mesh position={[0.2, 1.2, 0.02]}>
+              <circleGeometry args={[0.5, 24]} />
+              <meshBasicMaterial color="#445577" transparent opacity={0.1} side={THREE.DoubleSide} />
+            </mesh>
+          </>
+        )}
+      </group>
+
+      {/* ── Stone frame — sits on the wall surface, IN FRONT of sky ── */}
+      <group position={[skyOffset, 0, 0]} rotation={[0, yRot, 0]}>
+        {/* Top border */}
+        <mesh position={[0, 2.45, 0.06]}>
+          <boxGeometry args={[2.2, 0.4, 0.12]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+        {/* Bottom sill */}
+        <mesh position={[0, -2.45, 0.06]}>
+          <boxGeometry args={[2.2, 0.4, 0.12]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+        {/* Left pillar */}
+        <mesh position={[-1, 0, 0.06]}>
+          <boxGeometry args={[0.25, 5.3, 0.12]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+        {/* Right pillar */}
+        <mesh position={[1, 0, 0.06]}>
+          <boxGeometry args={[0.25, 5.3, 0.12]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+        {/* Pointed arch top */}
+        <mesh position={[0, 2.8, 0.06]}>
+          <coneGeometry args={[1, 1.2, 3]} />
+          <meshStandardMaterial color="#6a5a48" roughness={0.92} />
+        </mesh>
+
+        {/* Stone mullion (center vertical) */}
+        <mesh position={[0, 0, 0.06]}>
+          <boxGeometry args={[0.08, 4.5, 0.12]} />
+          <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+        </mesh>
+        {/* Horizontal transoms */}
+        <mesh position={[0, 0.8, 0.06]}>
+          <boxGeometry args={[1.8, 0.07, 0.12]} />
+          <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+        </mesh>
+        <mesh position={[0, -0.8, 0.06]}>
+          <boxGeometry args={[1.8, 0.07, 0.12]} />
+          <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+        </mesh>
+      </group>
+
+      {/* Subtle blue glow from window */}
+      <pointLight position={[skyOffset * 3, 0, 0]} color="#2244aa" intensity={0.4} distance={8} decay={2} />
     </group>
   );
 }
