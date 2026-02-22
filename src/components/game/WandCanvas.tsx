@@ -96,14 +96,56 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
     // Draw head pose indicator
     if (headPose) {
       if (headPose.faceLandmarks) {
-        for (let i = 0; i < headPose.faceLandmarks.length; i += 4) {
-          const lm = headPose.faceLandmarks[i];
-          const fx = lm.x * width;
-          const fy = lm.y * height;
+        // Meaningful facial feature contours using MediaPipe Face Mesh indices
+        const featureContours: number[][] = [
+          // Left eyebrow
+          [70, 63, 105, 66, 107, 55, 65],
+          // Right eyebrow
+          [300, 293, 334, 296, 336, 285, 295],
+          // Left eye
+          [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7],
+          // Right eye
+          [263, 466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249],
+          // Nose bridge
+          [168, 6, 197, 195, 5],
+          // Nose bottom
+          [48, 115, 220, 45, 4, 275, 440, 344, 278],
+          // Outer lips
+          [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185, 61],
+          // Inner lips
+          [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191, 78],
+          // Jawline
+          [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10],
+        ];
+
+        ctx.strokeStyle = "rgba(34, 197, 94, 0.3)";
+        ctx.lineWidth = 1;
+
+        for (const contour of featureContours) {
+          // Draw connecting lines
           ctx.beginPath();
-          ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
-          ctx.fill();
+          for (let i = 0; i < contour.length; i++) {
+            const idx = contour[i];
+            if (idx >= headPose.faceLandmarks.length) continue;
+            const lm = headPose.faceLandmarks[idx];
+            const fx = lm.x * width;
+            const fy = lm.y * height;
+            if (i === 0) ctx.moveTo(fx, fy);
+            else ctx.lineTo(fx, fy);
+          }
+          ctx.stroke();
+
+          // Draw dots at each point
+          for (const idx of contour) {
+            if (idx >= headPose.faceLandmarks.length) continue;
+            const lm = headPose.faceLandmarks[idx];
+            const fx = lm.x * width;
+            const fy = lm.y * height;
+            ctx.beginPath();
+            ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
+            ctx.fill();
+          }
         }
       }
     }
