@@ -564,22 +564,22 @@ export default function GreatHallScene() {
   // Generate floating candle positions — more candles, clustered over tables
   const candles = useMemo(() => {
     const arr: { pos: [number, number, number]; phase: number }[] = [];
-    // Candles above tables — fewer per table
+    // Candles above tables — dense clusters
     const tableXs = [-7, -3, 3, 7];
     for (const tx of tableXs) {
-      for (let j = 0; j < 6; j++) {
+      for (let j = 0; j < 14; j++) {
         arr.push({
-          pos: [tx + (Math.random() - 0.5) * 1.5, 4 + Math.random() * 4.5, -12 + j * 5 + Math.random()],
+          pos: [tx + (Math.random() - 0.5) * 1.8, 4 + Math.random() * 4.5, -14 + j * 2.2 + Math.random()],
           phase: Math.random() * Math.PI * 2,
         });
       }
     }
-    // A few scattered aisle candles
-    for (let i = 0; i < 10; i++) {
+    // Scattered aisle and ceiling candles
+    for (let i = 0; i < 30; i++) {
       arr.push({
         pos: [
-          (Math.random() - 0.5) * 5,
-          6 + Math.random() * 3,
+          (Math.random() - 0.5) * (hw * 1.6),
+          5 + Math.random() * 4,
           (Math.random() - 0.5) * (hd * 2 - 6),
         ],
         phase: Math.random() * Math.PI * 2,
