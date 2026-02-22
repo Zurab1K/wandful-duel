@@ -511,7 +511,7 @@ export default function CharacterPreview3D({ robeColor, accentColor }: Character
       style={{ background: "radial-gradient(ellipse at center, #1a1510 0%, #0a0808 100%)" }}
     >
       <Canvas
-        camera={{ position: [0, 0.3, 2.0], fov: 42 }}
+        camera={{ position: [0, 0.5, 3.5], fov: 35 }}
         gl={{ antialias: true, alpha: false }}
       >
         <CharacterScene robeColor={robeColor} accentColor={accentColor} />
