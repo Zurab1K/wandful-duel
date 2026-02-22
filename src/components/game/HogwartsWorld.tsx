@@ -2,6 +2,7 @@ import { useRef, useMemo, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { type RoomDef } from "@/lib/hogwartsRooms";
+import GreatHallScene from "./GreatHallScene";
 
 // ─── Room geometry ────────────────────────────────────────
 
@@ -370,7 +371,7 @@ function WorldInner({
       <hemisphereLight args={["#ffeedd", "#554433", 1.2]} />
 
       {/* Render current room */}
-      <RoomMesh room={currentRoom} />
+      {currentRoom.id === "great-hall" ? <GreatHallScene /> : <RoomMesh room={currentRoom} />}
 
       {/* Camera controller */}
       <CameraController

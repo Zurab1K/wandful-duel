@@ -51,9 +51,9 @@ export const ROOMS: RoomDef[] = [
     id: "great-hall",
     name: "Great Hall",
     center: [0, 0, 0],
-    size: [12, 5, 18],
-    wallColor: "#8a7868",
-    floorColor: "#6a5a48",
+    size: [12, 5, 18], // bounds used for camera clamping
+    wallColor: "#7a6b5a",
+    floorColor: "#4a3828",
     ceilingColor: "#5a4a3a",
     ambientColor: "#ffd699",
     ambientIntensity: 0.6,
