@@ -474,9 +474,6 @@ function NightSkyWindow({
             <meshBasicMaterial color="#ffffff" transparent opacity={star.brightness} side={THREE.DoubleSide} />
           </mesh>
         ))}
-        <mesh position={[0.4, 1.0, 0.02]}><circleGeometry args={[0.04, 8]} /><meshBasicMaterial color="#aaccff" side={THREE.DoubleSide} /></mesh>
-        <mesh position={[-0.3, 0.5, 0.02]}><circleGeometry args={[0.03, 8]} /><meshBasicMaterial color="#ffeedd" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
-        <mesh position={[0.5, -0.3, 0.02]}><circleGeometry args={[0.025, 8]} /><meshBasicMaterial color="#ccddff" transparent opacity={0.8} side={THREE.DoubleSide} /></mesh>
 
         {/* Wispy clouds */}
         <mesh position={[-0.2, -0.3, 0.03]}>
