@@ -196,8 +196,8 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
 
   return (
     <group position={position}>
-      {/* ── Night sky backdrop — behind the wall, facing into the room (+z) ── */}
-      <group position={[0, 0.5, -0.3]}>
+      {/* ── Night sky backdrop — IN FRONT of wall, facing player (+z) ── */}
+      <group position={[0, 0.5, 0.2]}>
         {/* Deep sky */}
         <mesh>
           <planeGeometry args={[5.5, 6]} />
