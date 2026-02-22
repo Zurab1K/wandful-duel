@@ -200,10 +200,28 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
                   ? "Left"
                   : "Right";
 
-              const rawTip = lm[INDEX_TIP];
+              // Extrapolate pencil/wand tip: project a line from wrist through
+              // the middle finger tip and extend it to estimate the held object's tip
+              const wrist = lm[WRIST];
+              const midTip = lm[MIDDLE_TIP];
+              const idxTip = lm[INDEX_TIP];
+              
+              // Average of index and middle tip as the "grip direction" reference
+              const gripX = (midTip.x + idxTip.x) / 2;
+              const gripY = (midTip.y + idxTip.y) / 2;
+              
+              // Direction from wrist to grip point
+              const dirX = gripX - wrist.x;
+              const dirY = gripY - wrist.y;
+              
+              // Extend beyond fingertips by ~60% of the hand length to reach pencil tip
+              const extensionFactor = 1.6;
+              const rawTipX = wrist.x + dirX * extensionFactor;
+              const rawTipY = wrist.y + dirY * extensionFactor;
+
               const smoothRef = handedness === "Right" ? smoothedRightRef : smoothedLeftRef;
-              const sx = smooth(smoothRef.current.x, rawTip.x);
-              const sy = smooth(smoothRef.current.y, rawTip.y);
+              const sx = smooth(smoothRef.current.x, rawTipX);
+              const sy = smooth(smoothRef.current.y, rawTipY);
               smoothRef.current = { x: sx, y: sy };
 
               const gesture = detectGesture(lm, handedness);

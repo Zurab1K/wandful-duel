@@ -68,6 +68,18 @@ export const SPELLS: Spell[] = [
   },
 ];
 
+export interface BattleStats {
+  spellsCast: number;
+  damageDealt: number;
+  damageTaken: number;
+  spellsBlocked: number;
+  highestCombo: number;
+  spellBreakdown: Record<string, number>;
+  result: "victory" | "defeat";
+  opponentName: string;
+  duration: number; // seconds
+}
+
 export interface GameState {
   playerHealth: number;
   playerMana: number;
@@ -75,7 +87,14 @@ export interface GameState {
   enemyMana: number;
   lastSpellCast: string | null;
   combo: number;
+  highestCombo: number;
   shieldActive: boolean;
+  spellsCast: number;
+  damageDealt: number;
+  damageTaken: number;
+  spellsBlocked: number;
+  spellBreakdown: Record<string, number>;
+  duelStartTime: number;
 }
 
 export const INITIAL_GAME_STATE: GameState = {
@@ -85,5 +104,12 @@ export const INITIAL_GAME_STATE: GameState = {
   enemyMana: 100,
   lastSpellCast: null,
   combo: 0,
+  highestCombo: 0,
   shieldActive: false,
+  spellsCast: 0,
+  damageDealt: 0,
+  damageTaken: 0,
+  spellsBlocked: 0,
+  spellBreakdown: {},
+  duelStartTime: 0,
 };

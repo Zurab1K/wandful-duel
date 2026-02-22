@@ -3,13 +3,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import * as THREE from "three";
 import { useHandTracking } from "@/hooks/useHandTracking";
 import { ROOMS, getRoomById, type RoomDef } from "@/lib/hogwartsRooms";
-import { INITIAL_GAME_STATE, SPELLS, type GameState } from "@/lib/spells";
+import { INITIAL_GAME_STATE, SPELLS, type GameState, type BattleStats } from "@/lib/spells";
 import { recognizeGesture, gestureToSpell, type SpellGesture } from "@/lib/gestureRecognizer";
 import HogwartsWorld from "@/components/game/HogwartsWorld";
 import SpellHUD from "@/components/game/SpellHUD";
 import WandCanvas from "@/components/game/WandCanvas";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import BattleBreakdown from "@/components/game/BattleBreakdown";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -43,6 +44,7 @@ export default function HogwartsExplore() {
   const playerSpellHistory = useRef<string[]>([]);
   const [enemyTaunt, setEnemyTaunt] = useState<string | null>(null);
   const castCooldownRef = useRef(false);
+  const [battleStats, setBattleStats] = useState<BattleStats | null>(null);
 
   const {
     isLoading,
@@ -202,13 +204,18 @@ export default function HogwartsExplore() {
         const ns = { ...prev };
         ns.playerMana -= spell.manaCost;
         ns.lastSpellCast = spell.name;
+        ns.spellsCast += 1;
+        ns.spellBreakdown = { ...prev.spellBreakdown, [spell.name]: (prev.spellBreakdown[spell.name] || 0) + 1 };
 
         if (spell.isDefensive) {
           ns.shieldActive = true;
           setTimeout(() => setGameState((s) => ({ ...s, shieldActive: false })), 3000);
         } else {
-          ns.enemyHealth = Math.max(0, prev.enemyHealth - spell.damage);
+          const damage = spell.damage + Math.floor(prev.combo * 2); // combo bonus
+          ns.enemyHealth = Math.max(0, prev.enemyHealth - damage);
+          ns.damageDealt += damage;
           ns.combo += 1;
+          ns.highestCombo = Math.max(ns.combo, prev.highestCombo);
         }
 
         playerSpellHistory.current.push(spell.name);
@@ -261,7 +268,10 @@ export default function HogwartsExplore() {
             u.enemyMana = Math.max(0, prev.enemyMana - enemySpell.manaCost);
             if (!enemySpell.isDefensive && !prev.shieldActive) {
               u.playerHealth = Math.max(0, prev.playerHealth - enemySpell.damage);
+              u.damageTaken += enemySpell.damage;
+              u.combo = 0; // reset combo when hit
             } else if (!enemySpell.isDefensive && prev.shieldActive) {
+              u.spellsBlocked += 1;
               toast({ title: "Protego!", description: `Blocked ${enemySpell.name}!` });
             }
             return u;
@@ -311,18 +321,32 @@ export default function HogwartsExplore() {
     return () => clearInterval(interval);
   }, [inDuel]);
 
-  // Game over
+  // Game over - show battle breakdown
+  const gameOverHandled = useRef(false);
   useEffect(() => {
-    if (!inDuel) return;
-    if (gameState.playerHealth <= 0) {
-      toast({ title: "Defeat!", variant: "destructive" });
-      setTimeout(() => { setInDuel(false); setDuelOpponent(null); }, 3000);
-    }
-    if (gameState.enemyHealth <= 0) {
-      toast({ title: "Victory!", description: `You defeated ${duelOpponent?.name}!` });
-      setTimeout(() => { setInDuel(false); setDuelOpponent(null); }, 3000);
-    }
-  }, [gameState.playerHealth, gameState.enemyHealth, inDuel, duelOpponent]);
+    if (!inDuel || gameOverHandled.current) return;
+    const isOver = gameState.playerHealth <= 0 || gameState.enemyHealth <= 0;
+    if (!isOver) return;
+    gameOverHandled.current = true;
+
+    const result: "victory" | "defeat" = gameState.enemyHealth <= 0 ? "victory" : "defeat";
+    const duration = (Date.now() - gameState.duelStartTime) / 1000;
+
+    setBattleStats({
+      spellsCast: gameState.spellsCast,
+      damageDealt: gameState.damageDealt,
+      damageTaken: gameState.damageTaken,
+      spellsBlocked: gameState.spellsBlocked,
+      highestCombo: gameState.highestCombo,
+      spellBreakdown: gameState.spellBreakdown,
+      result,
+      opponentName: duelOpponent?.name || "Unknown",
+      duration,
+    });
+
+    setInDuel(false);
+    setDuelOpponent(null);
+  }, [gameState.playerHealth, gameState.enemyHealth, inDuel, duelOpponent, gameState]);
 
   const wandTip = wandHand?.wandTip || null;
 
@@ -383,7 +407,8 @@ export default function HogwartsExplore() {
                   onClick={() => {
                     setInDuel(true);
                     setDuelOpponent({ name: npc.name, title: npc.title, level: npc.level });
-                    setGameState(INITIAL_GAME_STATE);
+                    setGameState({ ...INITIAL_GAME_STATE, duelStartTime: Date.now() });
+                    gameOverHandled.current = false;
                     toast({ title: `Duel with ${npc.name}!`, description: npc.title });
                   }}
                 >
@@ -479,7 +504,16 @@ export default function HogwartsExplore() {
                 <div>➡️ <strong>Lean Right</strong> → Turn Right</div>
               </div>
               <h3 className="font-display text-sm text-primary tracking-wider uppercase mt-4 mb-3">
-                Spells (Right Hand)
+                Wand Spells (Hold a pencil/stick)
+              </h3>
+              <div className="space-y-1 font-body text-sm text-foreground/80">
+                <div>✏️ <strong>Draw V</strong> → Expelliarmus</div>
+                <div>⭕ <strong>Draw Circle</strong> → Protego</div>
+                <div>➖ <strong>Draw Line</strong> → Stupefy</div>
+                <div>⚡ <strong>Draw Zigzag</strong> → Incendio</div>
+              </div>
+              <h3 className="font-display text-sm text-primary tracking-wider uppercase mt-4 mb-3">
+                Hand Gestures
               </h3>
               <div className="space-y-1 font-body text-sm text-foreground/80">
                 <div>✊ Fist → Expelliarmus</div>
@@ -500,6 +534,9 @@ export default function HogwartsExplore() {
           </Button>
         </div>
       )}
+
+      {/* Battle breakdown popup */}
+      <BattleBreakdown stats={battleStats} onClose={() => setBattleStats(null)} />
     </div>
   );
 }
