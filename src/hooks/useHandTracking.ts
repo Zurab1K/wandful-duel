@@ -26,6 +26,8 @@ export interface HeadPose {
   /** Normalized nose position (0-1), center of screen ≈ 0.5 */
   x: number;
   y: number;
+  /** All face landmarks for visualization */
+  faceLandmarks: Array<{ x: number; y: number; z: number }>;
 }
 
 export interface TrackingState {
@@ -175,7 +177,7 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
                 const hx = smooth(smoothedHeadRef.current.x, nose.x, 0.3);
                 const hy = smooth(smoothedHeadRef.current.y, nose.y, 0.3);
                 smoothedHeadRef.current = { x: hx, y: hy };
-                headPose = { x: hx, y: hy };
+                headPose = { x: hx, y: hy, faceLandmarks: faceLm };
               }
             }
           }
