@@ -1,90 +1,212 @@
-import { useRef, useEffect, useMemo } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { useRef, useState, useCallback } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 interface CharacterPreviewProps {
   robeColor: string;
   accentColor: string;
 }
 
-function SoldierModel({ robeColor, accentColor }: CharacterPreviewProps) {
+function WizardCharacter({ robeColor, accentColor }: CharacterPreviewProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
-  const gltf = useLoader(GLTFLoader, "/models/Soldier.glb");
 
-  // Set up animation mixer and play idle animation
-  useEffect(() => {
-    if (!gltf.scene || !gltf.animations.length) return;
-
-    const mixer = new THREE.AnimationMixer(gltf.scene);
-    mixerRef.current = mixer;
-
-    // Find an idle animation, or use the first one
-    const idleClip =
-      gltf.animations.find((a) => /idle/i.test(a.name)) ||
-      gltf.animations[0];
-
-    if (idleClip) {
-      const action = mixer.clipAction(idleClip);
-      action.play();
-    }
-
-    return () => {
-      mixer.stopAllAction();
-    };
-  }, [gltf]);
-
-  // Recolor materials based on house
-  useEffect(() => {
-    if (!gltf.scene) return;
-
-    gltf.scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-
-        materials.forEach((material, idx) => {
-          if (material && (material as THREE.MeshStandardMaterial).isMeshStandardMaterial) {
-            const mat = material.clone() as THREE.MeshStandardMaterial;
-            const r = mat.color.r;
-            const g = mat.color.g;
-            const b = mat.color.b;
-
-            // Dark materials → robe color
-            if (r < 0.3 && g < 0.3 && b < 0.3) {
-              mat.color.set(robeColor);
-              mat.roughness = 0.8;
-            }
-            // Medium gray → accent
-            else if (r > 0.3 && r < 0.7 && Math.abs(r - g) < 0.15 && Math.abs(r - b) < 0.15) {
-              mat.color.set(accentColor);
-              mat.roughness = 0.7;
-            }
-
-            if (Array.isArray(mesh.material)) {
-              mesh.material[idx] = mat;
-            } else {
-              mesh.material = mat;
-            }
-          }
-        });
-      }
-    });
-  }, [gltf, robeColor, accentColor]);
-
-  // Update animation mixer + gentle bob
-  useFrame((_, delta) => {
-    mixerRef.current?.update(delta);
+  // Gentle idle animation
+  useFrame(({ clock }) => {
     if (groupRef.current) {
-      groupRef.current.position.y = -0.92 + Math.sin(Date.now() * 0.0012) * 0.01;
+      groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 1.2) * 0.03;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, -0.92, 0]} scale={0.5}>
-      <primitive object={gltf.scene} />
+    <group ref={groupRef}>
+      {/* === LEGS === */}
+      {/* Left leg */}
+      <mesh position={[-0.12, -0.65, 0]}>
+        <capsuleGeometry args={[0.06, 0.5, 8, 16]} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.9} />
+      </mesh>
+      {/* Right leg */}
+      <mesh position={[0.12, -0.65, 0]}>
+        <capsuleGeometry args={[0.06, 0.5, 8, 16]} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.9} />
+      </mesh>
+
+      {/* === BOOTS === */}
+      <mesh position={[-0.12, -1.0, 0.03]}>
+        <boxGeometry args={[0.14, 0.12, 0.2]} />
+        <meshStandardMaterial color="#3a2a1a" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.12, -1.0, 0.03]}>
+        <boxGeometry args={[0.14, 0.12, 0.2]} />
+        <meshStandardMaterial color="#3a2a1a" roughness={0.85} />
+      </mesh>
+
+      {/* === TORSO (vest/shirt) === */}
+      <mesh position={[0, 0.05, 0]}>
+        <capsuleGeometry args={[0.18, 0.45, 8, 16]} />
+        <meshStandardMaterial color="#3a3530" roughness={0.8} />
+      </mesh>
+
+      {/* === VEST front detail === */}
+      <mesh position={[0, 0.1, 0.14]}>
+        <boxGeometry args={[0.22, 0.35, 0.05]} />
+        <meshStandardMaterial color="#4a4035" roughness={0.85} />
+      </mesh>
+
+      {/* === BELT === */}
+      <mesh position={[0, -0.18, 0]}>
+        <cylinderGeometry args={[0.19, 0.19, 0.06, 16]} />
+        <meshStandardMaterial color="#5a3a1a" roughness={0.7} metalness={0.2} />
+      </mesh>
+      {/* Belt buckle */}
+      <mesh position={[0, -0.18, 0.19]}>
+        <boxGeometry args={[0.06, 0.06, 0.02]} />
+        <meshStandardMaterial color="#d4a625" roughness={0.3} metalness={0.8} />
+      </mesh>
+
+      {/* === ROBE / CLOAK === */}
+      {/* Main robe body - outer layer */}
+      <mesh position={[0, -0.1, -0.02]}>
+        <capsuleGeometry args={[0.24, 0.9, 8, 16]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} transparent opacity={0.95} />
+      </mesh>
+
+      {/* Robe front flaps - left */}
+      <mesh position={[-0.15, -0.15, 0.12]} rotation={[0, 0.2, 0]}>
+        <boxGeometry args={[0.18, 0.85, 0.04]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+      {/* Robe front flaps - right */}
+      <mesh position={[0.15, -0.15, 0.12]} rotation={[0, -0.2, 0]}>
+        <boxGeometry args={[0.18, 0.85, 0.04]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+
+      {/* Robe accent trim - bottom hem */}
+      <mesh position={[0, -0.6, -0.02]}>
+        <cylinderGeometry args={[0.25, 0.27, 0.04, 16]} />
+        <meshStandardMaterial color={accentColor} roughness={0.7} />
+      </mesh>
+
+      {/* === CAPE / CLOAK BACK === */}
+      <mesh position={[0, 0.05, -0.16]} rotation={[0.1, 0, 0]}>
+        <boxGeometry args={[0.46, 1.1, 0.04]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+      {/* Cape accent stripe */}
+      <mesh position={[0, -0.15, -0.185]} rotation={[0.1, 0, 0]}>
+        <boxGeometry args={[0.48, 0.03, 0.01]} />
+        <meshStandardMaterial color={accentColor} roughness={0.6} />
+      </mesh>
+
+      {/* === SHOULDER CAPE === */}
+      {/* Left shoulder drape */}
+      <mesh position={[-0.22, 0.32, 0]} rotation={[0, 0, 0.3]}>
+        <boxGeometry args={[0.2, 0.35, 0.3]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+      {/* Right shoulder drape */}
+      <mesh position={[0.22, 0.32, 0]} rotation={[0, 0, -0.3]}>
+        <boxGeometry args={[0.2, 0.35, 0.3]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+
+      {/* === COLLAR === */}
+      <mesh position={[0, 0.42, 0]}>
+        <cylinderGeometry args={[0.14, 0.18, 0.12, 16]} />
+        <meshStandardMaterial color={robeColor} roughness={0.8} />
+      </mesh>
+      {/* Collar accent */}
+      <mesh position={[0, 0.46, 0.08]}>
+        <boxGeometry args={[0.16, 0.06, 0.08]} />
+        <meshStandardMaterial color={accentColor} roughness={0.7} />
+      </mesh>
+
+      {/* === SCARF / TIE === */}
+      <mesh position={[0, 0.35, 0.15]}>
+        <boxGeometry args={[0.06, 0.15, 0.03]} />
+        <meshStandardMaterial color={accentColor} roughness={0.7} />
+      </mesh>
+
+      {/* === ARMS === */}
+      {/* Left arm */}
+      <mesh position={[-0.3, 0.05, 0]} rotation={[0, 0, 0.15]}>
+        <capsuleGeometry args={[0.06, 0.5, 8, 16]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+      {/* Right arm */}
+      <mesh position={[0.3, 0.05, 0]} rotation={[0, 0, -0.15]}>
+        <capsuleGeometry args={[0.06, 0.5, 8, 16]} />
+        <meshStandardMaterial color={robeColor} roughness={0.85} />
+      </mesh>
+
+      {/* === HANDS === */}
+      <mesh position={[-0.34, -0.28, 0]}>
+        <sphereGeometry args={[0.05, 12, 12]} />
+        <meshStandardMaterial color="#d4a574" roughness={0.6} />
+      </mesh>
+      <mesh position={[0.34, -0.28, 0]}>
+        <sphereGeometry args={[0.05, 12, 12]} />
+        <meshStandardMaterial color="#d4a574" roughness={0.6} />
+      </mesh>
+
+      {/* === WAND (right hand) === */}
+      <mesh position={[0.36, -0.2, 0.08]} rotation={[0.5, 0, -0.2]}>
+        <cylinderGeometry args={[0.012, 0.018, 0.4, 8]} />
+        <meshStandardMaterial color="#4a3728" roughness={0.7} metalness={0.1} />
+      </mesh>
+      {/* Wand tip glow */}
+      <mesh position={[0.34, -0.01, 0.18]}>
+        <sphereGeometry args={[0.015, 8, 8]} />
+        <meshStandardMaterial color="#eab308" emissive="#eab308" emissiveIntensity={1.5} />
+      </mesh>
+      <pointLight position={[0.34, -0.01, 0.18]} color="#eab308" intensity={0.5} distance={1} />
+
+      {/* === HEAD === */}
+      <mesh position={[0, 0.6, 0]}>
+        <sphereGeometry args={[0.16, 16, 16]} />
+        <meshStandardMaterial color="#d4a574" roughness={0.6} />
+      </mesh>
+
+      {/* === HAIR === */}
+      {/* Hair top */}
+      <mesh position={[0, 0.7, -0.02]}>
+        <sphereGeometry args={[0.17, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
+        <meshStandardMaterial color="#4a3020" roughness={0.9} />
+      </mesh>
+      {/* Hair sides - left */}
+      <mesh position={[-0.12, 0.6, -0.03]} rotation={[0, 0, 0.3]}>
+        <boxGeometry args={[0.08, 0.22, 0.14]} />
+        <meshStandardMaterial color="#4a3020" roughness={0.9} />
+      </mesh>
+      {/* Hair sides - right */}
+      <mesh position={[0.12, 0.6, -0.03]} rotation={[0, 0, -0.3]}>
+        <boxGeometry args={[0.08, 0.22, 0.14]} />
+        <meshStandardMaterial color="#4a3020" roughness={0.9} />
+      </mesh>
+      {/* Hair back */}
+      <mesh position={[0, 0.55, -0.12]}>
+        <boxGeometry args={[0.26, 0.28, 0.08]} />
+        <meshStandardMaterial color="#4a3020" roughness={0.9} />
+      </mesh>
+
+      {/* === FACE DETAILS === */}
+      {/* Eyes */}
+      <mesh position={[-0.05, 0.62, 0.14]}>
+        <sphereGeometry args={[0.02, 8, 8]} />
+        <meshStandardMaterial color="#2a1a0a" roughness={0.5} />
+      </mesh>
+      <mesh position={[0.05, 0.62, 0.14]}>
+        <sphereGeometry args={[0.02, 8, 8]} />
+        <meshStandardMaterial color="#2a1a0a" roughness={0.5} />
+      </mesh>
+
+      {/* === HOUSE CREST on chest === */}
+      <mesh position={[-0.08, 0.2, 0.18]}>
+        <boxGeometry args={[0.06, 0.07, 0.01]} />
+        <meshStandardMaterial color={accentColor} roughness={0.3} metalness={0.6} />
+      </mesh>
     </group>
   );
 }
@@ -92,26 +214,25 @@ function SoldierModel({ robeColor, accentColor }: CharacterPreviewProps) {
 function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 5, 4]} intensity={1.4} castShadow />
-      <directionalLight position={[-2, 3, -2]} intensity={0.4} color="#aaccff" />
-      <pointLight position={[0, 1, 2.5]} intensity={0.5} color="#ffeedd" />
-      <pointLight position={[0, -0.5, -1]} intensity={0.2} color="#aaaacc" />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[3, 5, 4]} intensity={1.2} castShadow />
+      <directionalLight position={[-2, 3, -1]} intensity={0.4} color="#aaccff" />
+      <pointLight position={[0, -0.5, 2]} intensity={0.3} color="#ffeedd" />
 
-      {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.92, 0]} receiveShadow>
-        <circleGeometry args={[1.2, 32]} />
+      {/* Ground circle */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.06, 0]} receiveShadow>
+        <circleGeometry args={[0.8, 32]} />
         <meshStandardMaterial color="#2a2520" roughness={0.95} />
       </mesh>
 
-      <SoldierModel robeColor={robeColor} accentColor={accentColor} />
+      <WizardCharacter robeColor={robeColor} accentColor={accentColor} />
 
       <OrbitControls
         enablePan={false}
         enableZoom={false}
         minPolarAngle={Math.PI * 0.3}
         maxPolarAngle={Math.PI * 0.6}
-        target={[0, 0.0, 0]}
+        target={[0, 0, 0]}
         autoRotate
         autoRotateSpeed={1.5}
       />
@@ -121,12 +242,11 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
 
 export default function CharacterPreview3D({ robeColor, accentColor }: CharacterPreviewProps) {
   return (
-    <div
-      className="w-full h-[340px] md:h-[420px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing"
+    <div className="w-full h-[340px] md:h-[400px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing"
       style={{ background: "radial-gradient(ellipse at center, #1a1510 0%, #0a0808 100%)" }}
     >
       <Canvas
-        camera={{ position: [0, 0.1, 2.8], fov: 38 }}
+        camera={{ position: [0, 0.3, 2.2], fov: 45 }}
         gl={{ antialias: true, alpha: false }}
       >
         <CharacterScene robeColor={robeColor} accentColor={accentColor} />
