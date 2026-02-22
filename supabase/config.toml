@@ -1,1 +1,7 @@
 project_id = "ymscyhafozcbnqgrfdlc"
+
+[functions.ai-opponent]
+verify_jwt = false
+
+[functions.voice-taunt]
+verify_jwt = false
