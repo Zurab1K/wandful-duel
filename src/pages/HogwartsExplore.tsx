@@ -54,10 +54,8 @@ export default function HogwartsExplore() {
     stopTracking,
   } = useHandTracking(videoRef);
 
-  // MediaPipe reports mirrored handedness with front camera:
-  // User's left hand is reported as "Right" and vice versa
-  const navHand = hands.find((h) => h.handedness === "Right");
-  const wandHand = hands.find((h) => h.handedness === "Left");
+  const navHand = hands.find((h) => h.handedness === "Left");
+  const wandHand = hands.find((h) => h.handedness === "Right");
 
   // ─── Left hand → movement input ───────────────────
   useEffect(() => {
