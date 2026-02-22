@@ -12,11 +12,20 @@ const MIDDLE_MCP = 9;
 const RING_MCP = 13;
 const PINKY_MCP = 17;
 
+// Face landmark indices
+const NOSE_TIP = 1;
+
 export interface HandData {
   landmarks: Array<{ x: number; y: number; z: number }>;
   handedness: "Left" | "Right";
   wandTip: { x: number; y: number } | null;
   gesture: string;
+}
+
+export interface HeadPose {
+  /** Normalized nose position (0-1), center of screen ≈ 0.5 */
+  x: number;
+  y: number;
 }
 
 export interface TrackingState {
@@ -25,6 +34,7 @@ export interface TrackingState {
   error: string | null;
   hands: HandData[];
   wandTrail: Array<{ x: number; y: number; t: number }>;
+  headPose: HeadPose | null;
 }
 
 // Exponential smoothing
@@ -44,10 +54,6 @@ function detectGesture(landmarks: Array<{ x: number; y: number; z: number }>, ha
     }
   }
 
-  // Thumb check — direction depends on which hand MediaPipe reports
-  // MediaPipe "Left" = user's right hand (mirrored camera)
-  // For MediaPipe "Left": thumb extends in +x direction
-  // For MediaPipe "Right": thumb extends in -x direction
   const thumbExtended = handedness === "Left"
     ? landmarks[THUMB_TIP].x > landmarks[THUMB_TIP - 2].x
     : landmarks[THUMB_TIP].x < landmarks[THUMB_TIP - 2].x;
@@ -67,12 +73,15 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
     error: null,
     hands: [],
     wandTrail: [],
+    headPose: null,
   });
 
   const handLandmarkerRef = useRef<any>(null);
+  const faceLandmarkerRef = useRef<any>(null);
   const animFrameRef = useRef<number>(0);
   const smoothedLeftRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const smoothedRightRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const smoothedHeadRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
   const trailRef = useRef<Array<{ x: number; y: number; t: number }>>([]);
   const lastTimestampRef = useRef<number>(0);
 
@@ -80,30 +89,42 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
     setState((s) => ({ ...s, isLoading: true, error: null }));
     try {
       const vision = await import("@mediapipe/tasks-vision");
-      const { HandLandmarker, FilesetResolver } = vision;
+      const { HandLandmarker, FaceLandmarker, FilesetResolver } = vision;
 
       const fileset = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
       );
 
-      const handLandmarker = await HandLandmarker.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-          delegate: "GPU",
-        },
-        numHands: 2,
-        runningMode: "VIDEO",
-      });
+      const [handLandmarker, faceLandmarker] = await Promise.all([
+        HandLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+            delegate: "GPU",
+          },
+          numHands: 2,
+          runningMode: "VIDEO",
+        }),
+        FaceLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            delegate: "GPU",
+          },
+          numFaces: 1,
+          runningMode: "VIDEO",
+        }),
+      ]);
 
       handLandmarkerRef.current = handLandmarker;
+      faceLandmarkerRef.current = faceLandmarker;
       setState((s) => ({ ...s, isLoading: false }));
     } catch (err) {
       console.error("MediaPipe init error:", err);
       setState((s) => ({
         ...s,
         isLoading: false,
-        error: "Failed to load hand tracking model. Please check your connection.",
+        error: "Failed to load tracking models. Please check your connection.",
       }));
     }
   }, []);
@@ -137,6 +158,30 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
           return;
         }
         lastTimestampRef.current = now;
+
+        let headPose: HeadPose | null = null;
+
+        try {
+          // Face detection for head pose
+          if (faceLandmarkerRef.current) {
+            const faceResults = faceLandmarkerRef.current.detectForVideo(
+              videoRef.current,
+              now
+            );
+            if (faceResults.faceLandmarks && faceResults.faceLandmarks.length > 0) {
+              const faceLm = faceResults.faceLandmarks[0];
+              const nose = faceLm[NOSE_TIP];
+              if (nose) {
+                const hx = smooth(smoothedHeadRef.current.x, nose.x, 0.3);
+                const hy = smooth(smoothedHeadRef.current.y, nose.y, 0.3);
+                smoothedHeadRef.current = { x: hx, y: hy };
+                headPose = { x: hx, y: hy };
+              }
+            }
+          }
+        } catch {
+          // Silently ignore face detection errors
+        }
 
         try {
           const results = handLandmarkerRef.current.detectForVideo(
@@ -182,6 +227,7 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
             ...s,
             hands,
             wandTrail: [...trailRef.current],
+            headPose,
           }));
         } catch {
           // Silently ignore detection errors
@@ -208,7 +254,7 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
       videoRef.current.srcObject = null;
     }
     trailRef.current = [];
-    setState((s) => ({ ...s, isTracking: false, hands: [], wandTrail: [] }));
+    setState((s) => ({ ...s, isTracking: false, hands: [], wandTrail: [], headPose: null }));
   }, [videoRef]);
 
   useEffect(() => {
