@@ -147,31 +147,31 @@ function HouseBanner({
         <meshStandardMaterial color="#3a2a1a" metalness={0.4} roughness={0.6} />
       </mesh>
       {/* Banner fabric — tall and narrow */}
-      <mesh ref={meshRef} position={[0, -3, 0.05]}>
-        <planeGeometry args={[1.2, 6]} />
+      <mesh ref={meshRef} position={[0, -4.5, 0.05]}>
+        <planeGeometry args={[1.4, 9]} />
         <meshStandardMaterial color={color} roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
       {/* Shield/emblem shape */}
-      <mesh position={[0, -2, 0.08]}>
-        <circleGeometry args={[0.35, 6]} />
+      <mesh position={[0, -3, 0.08]}>
+        <circleGeometry args={[0.45, 6]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} metalness={0.3} side={THREE.DoubleSide} />
       </mesh>
       {/* Border stripes (horizontal) */}
       <mesh position={[0, -0.5, 0.06]}>
-        <planeGeometry args={[1.3, 0.08]} />
+        <planeGeometry args={[1.5, 0.08]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[0, -3, 0.06]}>
-        <planeGeometry args={[1.3, 0.08]} />
+      <mesh position={[0, -4.5, 0.06]}>
+        <planeGeometry args={[1.5, 0.08]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[0, -5.5, 0.06]}>
-        <planeGeometry args={[1.3, 0.08]} />
+      <mesh position={[0, -8.5, 0.06]}>
+        <planeGeometry args={[1.5, 0.08]} />
         <meshStandardMaterial color={emblemColor} roughness={0.7} side={THREE.DoubleSide} />
       </mesh>
       {/* Pointed bottom tip */}
-      <mesh position={[0, -6.2, 0.05]} rotation={[0, 0, Math.PI / 4]}>
-        <planeGeometry args={[0.6, 0.6]} />
+      <mesh position={[0, -9.3, 0.05]} rotation={[0, 0, Math.PI / 4]}>
+        <planeGeometry args={[0.7, 0.7]} />
         <meshStandardMaterial color={color} roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
     </group>
@@ -431,8 +431,8 @@ function NightSkyWindow({
     const rng = () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
     for (let i = 0; i < 20; i++) {
       arr.push({
-        y: (rng() - 0.5) * 3.8,
-        z: (rng() - 0.5) * 1.5,
+        y: (rng() - 0.5) * 6,
+        z: (rng() - 0.5) * 2,
         size: 0.015 + rng() * 0.025,
         brightness: 0.5 + rng() * 0.5,
       });
@@ -453,17 +453,17 @@ function NightSkyWindow({
       <group position={[skyOffset, 0, 0]} rotation={[0, yRot, 0]}>
         {/* Deep sky base */}
         <mesh position={[0, 0, 0]}>
-          <planeGeometry args={[1.8, 4.5]} />
+          <planeGeometry args={[2.2, 7]} />
           <meshBasicMaterial color="#0c1a3a" side={THREE.DoubleSide} />
         </mesh>
         {/* Upper sky gradient */}
-        <mesh position={[0, 1.2, 0.01]}>
-          <planeGeometry args={[1.8, 2]} />
+        <mesh position={[0, 2, 0.01]}>
+          <planeGeometry args={[2.2, 3]} />
           <meshBasicMaterial color="#132850" transparent opacity={0.6} side={THREE.DoubleSide} />
         </mesh>
         {/* Lower horizon */}
-        <mesh position={[0, -1.8, 0.01]}>
-          <planeGeometry args={[1.8, 1]} />
+        <mesh position={[0, -2.8, 0.01]}>
+          <planeGeometry args={[2.2, 1.5]} />
           <meshBasicMaterial color="#0a0e24" transparent opacity={0.5} side={THREE.DoubleSide} />
         </mesh>
 
@@ -507,43 +507,43 @@ function NightSkyWindow({
       {/* ── Stone frame — sits on the wall surface, IN FRONT of sky ── */}
       <group position={[skyOffset, 0, 0]} rotation={[0, yRot, 0]}>
         {/* Top border */}
-        <mesh position={[0, 2.45, 0.06]}>
-          <boxGeometry args={[2.2, 0.4, 0.12]} />
+        <mesh position={[0, 3.7, 0.06]}>
+          <boxGeometry args={[2.6, 0.4, 0.12]} />
           <meshStandardMaterial color="#6a5a48" roughness={0.92} />
         </mesh>
         {/* Bottom sill */}
-        <mesh position={[0, -2.45, 0.06]}>
-          <boxGeometry args={[2.2, 0.4, 0.12]} />
+        <mesh position={[0, -3.7, 0.06]}>
+          <boxGeometry args={[2.6, 0.4, 0.12]} />
           <meshStandardMaterial color="#6a5a48" roughness={0.92} />
         </mesh>
         {/* Left pillar */}
-        <mesh position={[-1, 0, 0.06]}>
-          <boxGeometry args={[0.25, 5.3, 0.12]} />
+        <mesh position={[-1.2, 0, 0.06]}>
+          <boxGeometry args={[0.25, 7.8, 0.12]} />
           <meshStandardMaterial color="#6a5a48" roughness={0.92} />
         </mesh>
         {/* Right pillar */}
-        <mesh position={[1, 0, 0.06]}>
-          <boxGeometry args={[0.25, 5.3, 0.12]} />
+        <mesh position={[1.2, 0, 0.06]}>
+          <boxGeometry args={[0.25, 7.8, 0.12]} />
           <meshStandardMaterial color="#6a5a48" roughness={0.92} />
         </mesh>
         {/* Pointed arch top */}
-        <mesh position={[0, 2.8, 0.06]}>
-          <coneGeometry args={[1, 1.2, 3]} />
+        <mesh position={[0, 4.2, 0.06]}>
+          <coneGeometry args={[1.2, 1.6, 3]} />
           <meshStandardMaterial color="#6a5a48" roughness={0.92} />
         </mesh>
 
         {/* Stone mullion (center vertical) */}
         <mesh position={[0, 0, 0.06]}>
-          <boxGeometry args={[0.08, 4.5, 0.12]} />
+          <boxGeometry args={[0.08, 7, 0.12]} />
           <meshStandardMaterial color="#5a4a38" roughness={0.9} />
         </mesh>
         {/* Horizontal transoms */}
-        <mesh position={[0, 0.8, 0.06]}>
-          <boxGeometry args={[1.8, 0.07, 0.12]} />
+        <mesh position={[0, 1.5, 0.06]}>
+          <boxGeometry args={[2.2, 0.07, 0.12]} />
           <meshStandardMaterial color="#5a4a38" roughness={0.9} />
         </mesh>
-        <mesh position={[0, -0.8, 0.06]}>
-          <boxGeometry args={[1.8, 0.07, 0.12]} />
+        <mesh position={[0, -1.5, 0.06]}>
+          <boxGeometry args={[2.2, 0.07, 0.12]} />
           <meshStandardMaterial color="#5a4a38" roughness={0.9} />
         </mesh>
       </group>
