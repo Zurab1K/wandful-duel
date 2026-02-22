@@ -449,7 +449,19 @@ function WorldInner({
       <hemisphereLight args={["#ffeedd", "#8a7a60", 1.8]} />
 
       {/* Render current room */}
-      {currentRoom.id === "great-hall" ? <GreatHallScene /> : <RoomMesh room={currentRoom} />}
+      {currentRoom.id === "great-hall" ? (
+        <>
+          <GreatHallScene />
+          {/* NPCs for Great Hall (not included in GreatHallScene) */}
+          <group position={[currentRoom.center[0], currentRoom.center[1], currentRoom.center[2]]}>
+            {currentRoom.npcs.map((npc) => (
+              <NPCFigure key={npc.id} npc={npc} />
+            ))}
+          </group>
+        </>
+      ) : (
+        <RoomMesh room={currentRoom} />
+      )}
 
       {/* Camera controller */}
       <CameraController
