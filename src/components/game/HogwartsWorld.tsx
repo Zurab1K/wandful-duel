@@ -450,15 +450,8 @@ function FirstPersonWandInner({
         <cylinderGeometry args={[0.022, 0.026, 0.12, 8]} />
         <meshStandardMaterial color={houseColor} roughness={0.8} />
       </mesh>
-      {/* Tip */}
-      <mesh position={[0, 0.46, 0]}>
-        <sphereGeometry args={[0.015, 12, 12]} />
-        <meshStandardMaterial
-          color={spellActive ? spellColor : "#8a7a6a"}
-          emissive={spellActive ? spellColor : "#000000"}
-          emissiveIntensity={spellActive ? 2 : 0}
-        />
-      </mesh>
+
+
       <pointLight
         position={[0, 0.5, 0]}
         color={spellActive ? spellColor : "#eab308"}
