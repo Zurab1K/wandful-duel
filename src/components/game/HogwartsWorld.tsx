@@ -275,10 +275,10 @@ function CameraController({
 
   useFrame((_, delta) => {
     const input = moveInput.current;
-    const speed = input.sprint ? 10 : 5;
-    const turnSpeed = input.sprint ? 3 : 2.2;
+    const speed = input.sprint ? 8 : 4;
+    const turnSpeed = input.sprint ? 1.8 : 1.2;
 
-    // Turn
+    // Turn — smoothed input already prevents jitter
     playerRot.current -= input.turn * turnSpeed * delta;
 
     // Move forward/backward

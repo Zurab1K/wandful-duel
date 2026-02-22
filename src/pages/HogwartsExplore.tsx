@@ -28,6 +28,7 @@ export default function HogwartsExplore() {
   const playerPos = useRef(new THREE.Vector3(0, 1.6, 5));
   const playerRot = useRef(Math.PI); // facing into the room
   const moveInput = useRef({ forward: 0, turn: 0, sprint: false });
+  const smoothedInput = useRef({ forward: 0, turn: 0 });
 
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
   const [spellActive, setSpellActive] = useState(false);
@@ -56,38 +57,61 @@ export default function HogwartsExplore() {
   // ─── Left hand → movement input ───────────────────
   useEffect(() => {
     if (!navHand?.landmarks || !isTracking) {
-      moveInput.current = { forward: 0, turn: 0, sprint: false };
+      // Smoothly decay to zero instead of snapping
+      smoothedInput.current.forward *= 0.85;
+      smoothedInput.current.turn *= 0.85;
+      if (Math.abs(smoothedInput.current.forward) < 0.01) smoothedInput.current.forward = 0;
+      if (Math.abs(smoothedInput.current.turn) < 0.01) smoothedInput.current.turn = 0;
+      moveInput.current = { forward: smoothedInput.current.forward, turn: smoothedInput.current.turn, sprint: false };
       return;
     }
 
-    // Use wrist position (landmark 0) instead of finger tip — 
-    // it's stable even during fist/open palm gestures
+    // Use wrist position (landmark 0) — stable regardless of gesture
     const wrist = navHand.landmarks[0];
     if (!wrist) {
-      moveInput.current = { forward: 0, turn: 0, sprint: false };
+      moveInput.current = { forward: smoothedInput.current.forward, turn: smoothedInput.current.turn, sprint: false };
       return;
     }
 
-    const hx = wrist.x; // 0–1
+    const hx = wrist.x; // 0–1 (mirrored camera)
     const hy = wrist.y; // 0–1
 
-    // Smaller deadzone (0.4–0.6) for more responsive movement
-    const DEAD_LO = 0.4;
-    const DEAD_HI = 0.6;
+    // Wider deadzone for turning to prevent accidental spin
+    const FWD_DEAD_LO = 0.35;
+    const FWD_DEAD_HI = 0.65;
+    const TURN_DEAD_LO = 0.3;
+    const TURN_DEAD_HI = 0.7;
 
     // Y axis: hand up (low y) = forward, hand down (high y) = backward
-    let forward = 0;
-    if (hy < DEAD_LO) forward = (DEAD_LO - hy) / DEAD_LO;       // up → forward (0 to 1)
-    else if (hy > DEAD_HI) forward = -(hy - DEAD_HI) / (1 - DEAD_HI); // down → backward (0 to -1)
+    let rawForward = 0;
+    if (hy < FWD_DEAD_LO) rawForward = (FWD_DEAD_LO - hy) / FWD_DEAD_LO;
+    else if (hy > FWD_DEAD_HI) rawForward = -(hy - FWD_DEAD_HI) / (1 - FWD_DEAD_HI);
 
-    // X axis: hand left (low x) = turn left, hand right (high x) = turn right
-    let turn = 0;
-    if (hx < DEAD_LO) turn = (DEAD_LO - hx) / DEAD_LO;
-    else if (hx > DEAD_HI) turn = -(hx - DEAD_HI) / (1 - DEAD_HI);
+    // X axis: hand left = turn left, hand right = turn right
+    let rawTurn = 0;
+    if (hx < TURN_DEAD_LO) rawTurn = (TURN_DEAD_LO - hx) / TURN_DEAD_LO;
+    else if (hx > TURN_DEAD_HI) rawTurn = -(hx - TURN_DEAD_HI) / (1 - TURN_DEAD_HI);
+
+    // Apply quadratic curve for finer control near center
+    rawForward = Math.sign(rawForward) * rawForward * rawForward;
+    rawTurn = Math.sign(rawTurn) * rawTurn * rawTurn;
+
+    // Clamp
+    rawForward = Math.max(-1, Math.min(1, rawForward));
+    rawTurn = Math.max(-1, Math.min(1, rawTurn));
+
+    // Exponential smoothing (lerp toward target) — prevents jitter and spinning
+    const SMOOTH_FACTOR = 0.15;
+    smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * SMOOTH_FACTOR;
+    smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * SMOOTH_FACTOR;
+
+    // Kill very small values to prevent drift
+    if (Math.abs(smoothedInput.current.forward) < 0.02) smoothedInput.current.forward = 0;
+    if (Math.abs(smoothedInput.current.turn) < 0.02) smoothedInput.current.turn = 0;
 
     const sprint = navHand.gesture === "fist";
 
-    moveInput.current = { forward, turn, sprint };
+    moveInput.current = { forward: smoothedInput.current.forward, turn: smoothedInput.current.turn, sprint };
   }, [navHand, isTracking]);
 
   // ─── Room transitions ─────────────────────────────
