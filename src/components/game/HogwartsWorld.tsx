@@ -1,5 +1,6 @@
 import { useRef, useMemo, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Billboard, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { type RoomDef } from "@/lib/hogwartsRooms";
 import GreatHallScene from "./GreatHallScene";
@@ -222,7 +223,7 @@ function DoorMarker({
 function NPCFigure({
   npc,
 }: {
-  npc: { name: string; position: [number, number, number]; robeColor: string; hostile: boolean };
+  npc: { name: string; title: string; position: [number, number, number]; robeColor: string; hostile: boolean; level: number };
 }) {
   const groupRef = useRef<THREE.Group>(null);
 
@@ -245,6 +246,30 @@ function NPCFigure({
         <sphereGeometry args={[0.2, 16, 16]} />
         <meshStandardMaterial color="#d4a574" roughness={0.6} />
       </mesh>
+      {/* Name label */}
+      <Billboard position={[0, 2.4, 0]} follow lockX={false} lockY={false} lockZ={false}>
+        <Text
+          fontSize={0.22}
+          color={npc.hostile ? "#ff6666" : "#88ff88"}
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.02}
+          outlineColor="#000000"
+        >
+          {npc.name}
+        </Text>
+        <Text
+          fontSize={0.12}
+          color="#cccccc"
+          anchorX="center"
+          anchorY="middle"
+          position={[0, -0.25, 0]}
+          outlineWidth={0.01}
+          outlineColor="#000000"
+        >
+          {npc.title}
+        </Text>
+      </Billboard>
       {/* Hostile indicator */}
       {npc.hostile && (
         <pointLight position={[0, 2.2, 0]} color="#ff4444" intensity={0.5} distance={3} />
