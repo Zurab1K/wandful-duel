@@ -57,7 +57,7 @@ export default function HouseSelect() {
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
       <FloatingParticles count={20} />
 
-      <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8 px-6 w-full max-w-5xl">
+      <div className="relative z-10 flex flex-col lg:flex-row-reverse items-center gap-8 px-6 w-full max-w-5xl">
         {/* Left: Character preview */}
         <div className="flex flex-col items-center gap-3 w-full lg:w-1/2">
           <CharacterPreview3D robeColor={robeColor} accentColor={accentColor} />
