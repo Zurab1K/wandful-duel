@@ -185,7 +185,7 @@ function DungeonInner({ wandScreenPos, spellActive, spellColor, shieldActive }: 
 
 export default function DungeonScene(props: DungeonSceneProps) {
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-[2] pointer-events-none">
       <Canvas
         shadows
         camera={{ position: [0, 2, 6], fov: 60 }}
