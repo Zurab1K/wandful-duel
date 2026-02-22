@@ -365,10 +365,10 @@ function WorldInner({
 }: HogwartsWorldProps) {
   return (
     <>
-      <fog attach="fog" args={["#2a2018", 15, 60]} />
+      <fog attach="fog" args={["#3a2a18", 20, 70]} />
 
       {/* Global hemisphere light for base visibility */}
-      <hemisphereLight args={["#ffeedd", "#554433", 1.2]} />
+      <hemisphereLight args={["#ffeedd", "#8a7a60", 1.8]} />
 
       {/* Render current room */}
       {currentRoom.id === "great-hall" ? <GreatHallScene /> : <RoomMesh room={currentRoom} />}

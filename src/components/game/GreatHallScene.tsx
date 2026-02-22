@@ -2,7 +2,7 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-// ─── Floating Candle ─────────────────────────────────────
+// ─── Floating Candle (with wax drips & glow) ────────────
 function FloatingCandle({ position, phase }: { position: [number, number, number]; phase: number }) {
   const groupRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
@@ -10,12 +10,12 @@ function FloatingCandle({ position, phase }: { position: [number, number, number
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (groupRef.current) {
-      // Gentle bobbing
-      groupRef.current.position.y = position[1] + Math.sin(t * 0.8 + phase) * 0.15;
+      groupRef.current.position.y = position[1] + Math.sin(t * 0.8 + phase) * 0.12;
+      // Very subtle rotation drift
+      groupRef.current.rotation.z = Math.sin(t * 0.4 + phase * 2) * 0.02;
     }
     if (lightRef.current) {
-      // Flickering flame
-      lightRef.current.intensity = 1.2 + Math.sin(t * 6 + phase) * 0.3 + Math.sin(t * 9.7 + phase * 2) * 0.15;
+      lightRef.current.intensity = 2.5 + Math.sin(t * 6 + phase) * 0.6 + Math.sin(t * 11 + phase * 3) * 0.3;
     }
   });
 
@@ -23,25 +23,41 @@ function FloatingCandle({ position, phase }: { position: [number, number, number
     <group ref={groupRef} position={position}>
       {/* Candle body */}
       <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.04, 0.05, 0.5, 6]} />
-        <meshStandardMaterial color="#f5e6c8" roughness={0.6} />
+        <cylinderGeometry args={[0.035, 0.045, 0.55, 8]} />
+        <meshStandardMaterial color="#f5e6c8" roughness={0.5} emissive="#f5e6c8" emissiveIntensity={0.05} />
       </mesh>
-      {/* Flame */}
-      <mesh position={[0, 0.32, 0]}>
+      {/* Wax drip 1 */}
+      <mesh position={[0.03, 0.15, 0.01]}>
+        <sphereGeometry args={[0.015, 6, 6]} />
+        <meshStandardMaterial color="#f0ddb8" roughness={0.5} />
+      </mesh>
+      {/* Wax drip 2 */}
+      <mesh position={[-0.02, 0.05, -0.02]}>
+        <sphereGeometry args={[0.012, 6, 6]} />
+        <meshStandardMaterial color="#eedcb0" roughness={0.5} />
+      </mesh>
+      {/* Flame core */}
+      <mesh position={[0, 0.34, 0]} scale={[1, 1.5, 1]}>
+        <sphereGeometry args={[0.035, 8, 8]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.95} />
+      </mesh>
+      {/* Flame outer */}
+      <mesh position={[0, 0.38, 0]} scale={[0.8, 1.8, 0.8]}>
         <sphereGeometry args={[0.04, 8, 8]} />
-        <meshBasicMaterial color="#ffaa33" />
+        <meshBasicMaterial color="#ffaa22" transparent opacity={0.7} />
       </mesh>
-      <mesh position={[0, 0.38, 0]} scale={[0.6, 1.2, 0.6]}>
-        <sphereGeometry args={[0.03, 6, 6]} />
-        <meshBasicMaterial color="#ffdd66" transparent opacity={0.8} />
+      {/* Flame glow halo */}
+      <mesh position={[0, 0.36, 0]} scale={[1.5, 1.5, 1.5]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color="#ff8811" transparent opacity={0.15} />
       </mesh>
       <pointLight
         ref={lightRef}
         position={[0, 0.35, 0]}
-        color="#ff9933"
-        intensity={1.2}
-        distance={8}
-        decay={2}
+        color="#ffaa44"
+        intensity={2.5}
+        distance={10}
+        decay={1.8}
       />
     </group>
   );
@@ -246,31 +262,41 @@ function StainedGlassWindow({ position }: { position: [number, number, number] }
 // ─── Wall Torch/Sconce ───────────────────────────────────
 function WallTorch({ position, rotation }: { position: [number, number, number]; rotation?: [number, number, number] }) {
   const lightRef = useRef<THREE.PointLight>(null);
+  const flameRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
     if (lightRef.current) {
-      lightRef.current.intensity = 2.5 + Math.sin(clock.getElapsedTime() * 4 + position[0] * 3) * 0.5;
+      lightRef.current.intensity = 4 + Math.sin(t * 5 + position[0] * 3) * 1 + Math.sin(t * 8.3 + position[2] * 2) * 0.5;
+    }
+    if (flameRef.current) {
+      flameRef.current.scale.y = 1 + Math.sin(t * 7 + position[0]) * 0.2;
     }
   });
 
   return (
     <group position={position} rotation={rotation || [0, 0, 0]}>
-      {/* Bracket */}
-      <mesh position={[0, 0, 0.1]}>
-        <boxGeometry args={[0.12, 0.3, 0.2]} />
-        <meshStandardMaterial color="#3a2a18" metalness={0.5} roughness={0.6} />
+      {/* Iron bracket */}
+      <mesh position={[0, -0.05, 0.12]}>
+        <boxGeometry args={[0.06, 0.5, 0.12]} />
+        <meshStandardMaterial color="#2a1a0a" metalness={0.7} roughness={0.4} />
       </mesh>
       {/* Torch cup */}
-      <mesh position={[0, 0.2, 0.2]}>
-        <cylinderGeometry args={[0.08, 0.12, 0.15, 8]} />
-        <meshStandardMaterial color="#2a1a0a" metalness={0.6} roughness={0.4} />
+      <mesh position={[0, 0.22, 0.22]}>
+        <cylinderGeometry args={[0.07, 0.1, 0.18, 8]} />
+        <meshStandardMaterial color="#1a0a04" metalness={0.7} roughness={0.3} />
       </mesh>
       {/* Flame */}
-      <mesh position={[0, 0.35, 0.2]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshBasicMaterial color="#ff8822" />
+      <mesh ref={flameRef} position={[0, 0.38, 0.22]} scale={[1, 1, 1]}>
+        <sphereGeometry args={[0.07, 8, 8]} />
+        <meshBasicMaterial color="#ffaa22" />
       </mesh>
-      <pointLight ref={lightRef} position={[0, 0.4, 0.3]} color="#ff8833" intensity={2.5} distance={8} decay={2} />
+      {/* Flame glow */}
+      <mesh position={[0, 0.38, 0.22]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshBasicMaterial color="#ff6600" transparent opacity={0.12} />
+      </mesh>
+      <pointLight ref={lightRef} position={[0, 0.4, 0.35]} color="#ff9933" intensity={4} distance={12} decay={1.5} />
     </group>
   );
 }
@@ -350,20 +376,31 @@ function DiningTable({ position, length = 14 }: { position: [number, number, num
 
 // ─── The Great Hall Scene ────────────────────────────────
 export default function GreatHallScene() {
-  const hw = 12; // half width
-  const hd = 18; // half depth
-  const wallH = 10; // full wall height
+  const hw = 12;
+  const hd = 18;
+  const wallH = 10;
   const cx = 0, cz = 0;
 
-  // Generate floating candle positions
+  // Generate floating candle positions — more candles, clustered over tables
   const candles = useMemo(() => {
     const arr: { pos: [number, number, number]; phase: number }[] = [];
-    for (let i = 0; i < 60; i++) {
+    // Candles above tables
+    const tableXs = [-7, -3, 3, 7];
+    for (const tx of tableXs) {
+      for (let j = 0; j < 12; j++) {
+        arr.push({
+          pos: [tx + (Math.random() - 0.5) * 1.5, 4 + Math.random() * 4.5, -12 + j * 2.5 + Math.random()],
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+    // Scattered candles in the aisle and higher up
+    for (let i = 0; i < 30; i++) {
       arr.push({
         pos: [
-          (Math.random() - 0.5) * (hw * 2 - 4),
-          5 + Math.random() * 4,
-          (Math.random() - 0.5) * (hd * 2 - 4),
+          (Math.random() - 0.5) * 6,
+          5.5 + Math.random() * 3.5,
+          (Math.random() - 0.5) * (hd * 2 - 6),
         ],
         phase: Math.random() * Math.PI * 2,
       });
@@ -373,61 +410,105 @@ export default function GreatHallScene() {
 
   return (
     <group position={[cx, 0, cz]}>
-      {/* ═══ Floor ═══ */}
+      {/* ═══ Floor — stone tiles ═══ */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[hw * 2, hd * 2]} />
-        <meshStandardMaterial color="#4a3828" roughness={0.92} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.88} />
       </mesh>
-      {/* Floor center aisle (darker stone) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <planeGeometry args={[3, hd * 2 - 2]} />
-        <meshStandardMaterial color="#3a2a1a" roughness={0.95} />
+      {/* Center aisle — worn dark stone */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
+        <planeGeometry args={[3.5, hd * 2 - 2]} />
+        <meshStandardMaterial color="#3e2e1e" roughness={0.92} />
       </mesh>
-
-      {/* ═══ Ceiling - vaulted look ═══ */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, wallH, 0]}>
-        <planeGeometry args={[hw * 2, hd * 2]} />
-        <meshStandardMaterial color="#2a1a12" roughness={1} />
-      </mesh>
-      {/* Ceiling beams */}
-      {Array.from({ length: 8 }, (_, i) => {
-        const z = -hd + 2 + i * (hd * 2 / 7);
+      {/* Floor tile lines for realism */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const z = -hd + 3 + i * 3;
         return (
-          <mesh key={`beam-${i}`} position={[0, wallH - 0.15, z]}>
-            <boxGeometry args={[hw * 2, 0.3, 0.25]} />
-            <meshStandardMaterial color="#3a2818" roughness={0.9} />
+          <mesh key={`ftile-${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.007, z]}>
+            <planeGeometry args={[hw * 2, 0.03]} />
+            <meshStandardMaterial color="#2a1a0e" roughness={1} />
           </mesh>
         );
       })}
 
-      {/* ═══ Walls ═══ */}
-      {/* North wall (far end with stained glass) */}
+      {/* ═══ Ceiling — dark vaulted ═══ */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, wallH, 0]}>
+        <planeGeometry args={[hw * 2, hd * 2]} />
+        <meshStandardMaterial color="#1e1208" roughness={1} />
+      </mesh>
+      {/* Ceiling ribs — cross beams */}
+      {Array.from({ length: 10 }, (_, i) => {
+        const z = -hd + 1.5 + i * (hd * 2 / 9);
+        return (
+          <group key={`rib-${i}`}>
+            <mesh position={[0, wallH - 0.12, z]}>
+              <boxGeometry args={[hw * 2, 0.25, 0.2]} />
+              <meshStandardMaterial color="#3a2818" roughness={0.85} />
+            </mesh>
+            {/* Diagonal rib left */}
+            <mesh position={[-hw / 2, wallH - 0.12, z]} rotation={[0, 0, 0.15]}>
+              <boxGeometry args={[hw, 0.15, 0.12]} />
+              <meshStandardMaterial color="#3a2818" roughness={0.85} />
+            </mesh>
+            {/* Diagonal rib right */}
+            <mesh position={[hw / 2, wallH - 0.12, z]} rotation={[0, 0, -0.15]}>
+              <boxGeometry args={[hw, 0.15, 0.12]} />
+              <meshStandardMaterial color="#3a2818" roughness={0.85} />
+            </mesh>
+          </group>
+        );
+      })}
+      {/* Longitudinal beam */}
+      <mesh position={[0, wallH - 0.12, 0]}>
+        <boxGeometry args={[0.2, 0.25, hd * 2]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.85} />
+      </mesh>
+
+      {/* ═══ Walls — stone with horizontal coursing lines ═══ */}
+      {/* North wall */}
       <mesh position={[0, wallH / 2, -hd]}>
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
-        <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
+        <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
-      {/* South wall (entrance - with door opening) */}
-      <mesh position={[-hw / 2 - hw / 4, wallH / 2, hd]}>
-        <boxGeometry args={[hw, wallH, 0.4]} />
-        <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
-      </mesh>
-      <mesh position={[hw / 2 + hw / 4, wallH / 2, hd]}>
-        <boxGeometry args={[hw, wallH, 0.4]} />
-        <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
-      </mesh>
-      <mesh position={[0, wallH * 0.85, hd]}>
-        <boxGeometry args={[hw / 2, wallH * 0.3, 0.4]} />
-        <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
+      {/* South wall (entrance) */}
+      <mesh position={[0, wallH / 2, hd]}>
+        <boxGeometry args={[hw * 2, wallH, 0.4]} />
+        <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
       {/* West wall */}
       <mesh position={[-hw, wallH / 2, 0]}>
         <boxGeometry args={[0.4, wallH, hd * 2]} />
-        <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
+        <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
       {/* East wall */}
       <mesh position={[hw, wallH / 2, 0]}>
         <boxGeometry args={[0.4, wallH, hd * 2]} />
-        <meshStandardMaterial color="#7a6b5a" roughness={0.95} />
+        <meshStandardMaterial color="#8a7a68" roughness={0.92} />
+      </mesh>
+      {/* Stone coursing lines on side walls */}
+      {Array.from({ length: 10 }, (_, i) => {
+        const y = 0.8 + i * 1;
+        return (
+          <group key={`course-${i}`}>
+            <mesh position={[-hw + 0.01, y, 0]}>
+              <boxGeometry args={[0.02, 0.03, hd * 2]} />
+              <meshStandardMaterial color="#5a4a38" roughness={1} />
+            </mesh>
+            <mesh position={[hw - 0.01, y, 0]}>
+              <boxGeometry args={[0.02, 0.03, hd * 2]} />
+              <meshStandardMaterial color="#5a4a38" roughness={1} />
+            </mesh>
+          </group>
+        );
+      })}
+      {/* Wall wainscoting / lower wood paneling */}
+      <mesh position={[-hw + 0.15, 1.2, 0]}>
+        <boxGeometry args={[0.12, 2.4, hd * 2 - 1]} />
+        <meshStandardMaterial color="#4a3018" roughness={0.85} />
+      </mesh>
+      <mesh position={[hw - 0.15, 1.2, 0]}>
+        <boxGeometry args={[0.12, 2.4, hd * 2 - 1]} />
+        <meshStandardMaterial color="#4a3018" roughness={0.85} />
       </mesh>
 
       {/* ═══ Gothic Pillars along both walls ═══ */}
@@ -501,16 +582,46 @@ export default function GreatHallScene() {
         <FloatingCandle key={i} position={c.pos} phase={c.phase} />
       ))}
 
-      {/* ═══ Atmospheric Lighting ═══ */}
-      <ambientLight color="#ffd699" intensity={0.3} />
-      {/* Main warm fills */}
-      <pointLight position={[0, 8, 0]} color="#ff9944" intensity={3} distance={40} decay={1} />
-      <pointLight position={[-6, 6, -8]} color="#ff8833" intensity={2} distance={25} decay={1.5} />
-      <pointLight position={[6, 6, -8]} color="#ff8833" intensity={2} distance={25} decay={1.5} />
-      <pointLight position={[-6, 6, 8]} color="#ff8833" intensity={2} distance={25} decay={1.5} />
-      <pointLight position={[6, 6, 8]} color="#ff8833" intensity={2} distance={25} decay={1.5} />
-      {/* Cooler accent from stained glass */}
-      <pointLight position={[0, 5, -hd + 3]} color="#6688bb" intensity={1.5} distance={20} decay={1.5} />
+      {/* ═══ Atmospheric Lighting — BRIGHT warm ═══ */}
+      <ambientLight color="#ffeedd" intensity={0.8} />
+      {/* Main overhead fills — high intensity, low decay */}
+      <pointLight position={[0, 9, 0]} color="#ffbb66" intensity={6} distance={50} decay={0.8} />
+      <pointLight position={[0, 8, -10]} color="#ffaa55" intensity={5} distance={40} decay={0.8} />
+      <pointLight position={[0, 8, 10]} color="#ffaa55" intensity={5} distance={40} decay={0.8} />
+      {/* Side fills */}
+      <pointLight position={[-8, 6, -8]} color="#ff9944" intensity={4} distance={30} decay={1} />
+      <pointLight position={[8, 6, -8]} color="#ff9944" intensity={4} distance={30} decay={1} />
+      <pointLight position={[-8, 6, 0]} color="#ff9944" intensity={3.5} distance={30} decay={1} />
+      <pointLight position={[8, 6, 0]} color="#ff9944" intensity={3.5} distance={30} decay={1} />
+      <pointLight position={[-8, 6, 8]} color="#ff9944" intensity={4} distance={30} decay={1} />
+      <pointLight position={[8, 6, 8]} color="#ff9944" intensity={4} distance={30} decay={1} />
+      {/* Stained glass cool accent */}
+      <pointLight position={[0, 6, -hd + 2]} color="#8899cc" intensity={3} distance={25} decay={1} />
+      {/* Table-level warm fills (so tables/plates glow) */}
+      <pointLight position={[-7, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
+      <pointLight position={[-3, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
+      <pointLight position={[3, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
+      <pointLight position={[7, 1.5, 0]} color="#ffcc88" intensity={2} distance={15} decay={1.5} />
+
+      {/* ═══ Table candles (on tables) ═══ */}
+      {[-7, -3, 3, 7].map((tx) =>
+        Array.from({ length: 6 }, (_, j) => {
+          const z = -10 + j * 4;
+          return (
+            <group key={`tc-${tx}-${j}`} position={[tx, 0.82, z]}>
+              <mesh>
+                <cylinderGeometry args={[0.025, 0.03, 0.2, 6]} />
+                <meshStandardMaterial color="#f5e6c8" roughness={0.5} />
+              </mesh>
+              <mesh position={[0, 0.13, 0]}>
+                <sphereGeometry args={[0.02, 6, 6]} />
+                <meshBasicMaterial color="#ffcc44" />
+              </mesh>
+              <pointLight position={[0, 0.15, 0]} color="#ffaa33" intensity={0.8} distance={4} decay={2} />
+            </group>
+          );
+        })
+      )}
     </group>
   );
 }
