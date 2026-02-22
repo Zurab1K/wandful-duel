@@ -48,8 +48,8 @@ function RoomMesh({ room }: { room: RoomDef }) {
           position={light.position}
           color={light.color}
           intensity={light.intensity}
-          distance={15}
-          decay={2}
+          distance={40}
+          decay={1}
         />
       ))}
 
@@ -352,7 +352,10 @@ function WorldInner({
 }: HogwartsWorldProps) {
   return (
     <>
-      <fog attach="fog" args={["#1a1510", 10, 50]} />
+      <fog attach="fog" args={["#2a2018", 15, 60]} />
+
+      {/* Global hemisphere light for base visibility */}
+      <hemisphereLight args={["#ffeedd", "#554433", 1.2]} />
 
       {/* Render current room */}
       <RoomMesh room={currentRoom} />
