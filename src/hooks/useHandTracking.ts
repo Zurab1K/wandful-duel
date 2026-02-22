@@ -31,7 +31,7 @@ export interface TrackingState {
 const smooth = (prev: number, curr: number, alpha = 0.4) =>
   prev + alpha * (curr - prev);
 
-function detectGesture(landmarks: Array<{ x: number; y: number; z: number }>): string {
+function detectGesture(landmarks: Array<{ x: number; y: number; z: number }>, handedness: "Left" | "Right"): string {
   if (!landmarks || landmarks.length < 21) return "unknown";
 
   const fingerTips = [INDEX_TIP, MIDDLE_TIP, RING_TIP, PINKY_TIP];
@@ -44,8 +44,13 @@ function detectGesture(landmarks: Array<{ x: number; y: number; z: number }>): s
     }
   }
 
-  // Thumb check
-  const thumbExtended = landmarks[THUMB_TIP].x < landmarks[THUMB_TIP - 2].x;
+  // Thumb check — direction depends on which hand MediaPipe reports
+  // MediaPipe "Left" = user's right hand (mirrored camera)
+  // For MediaPipe "Left": thumb extends in +x direction
+  // For MediaPipe "Right": thumb extends in -x direction
+  const thumbExtended = handedness === "Left"
+    ? landmarks[THUMB_TIP].x > landmarks[THUMB_TIP - 2].x
+    : landmarks[THUMB_TIP].x < landmarks[THUMB_TIP - 2].x;
 
   if (extended === 0 && !thumbExtended) return "fist";
   if (extended === 4 && thumbExtended) return "open_palm";
@@ -152,7 +157,7 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
               const sy = smooth(smoothedRef.current.y, rawTip.y);
               smoothedRef.current = { x: sx, y: sy };
 
-              const gesture = detectGesture(lm);
+              const gesture = detectGesture(lm, handedness);
 
               // Add to trail
               trailRef.current.push({ x: sx, y: sy, t: now });
