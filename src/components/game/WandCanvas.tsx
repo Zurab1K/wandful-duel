@@ -95,31 +95,51 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
 
     // Draw head pose indicator
     if (headPose) {
+      // Draw all face landmark dots
+      if (headPose.faceLandmarks) {
+        // Face mesh outline connections (simplified - just key contours)
+        // Draw every ~3rd landmark as a dot for performance
+        for (let i = 0; i < headPose.faceLandmarks.length; i += 3) {
+          const lm = headPose.faceLandmarks[i];
+          const fx = lm.x * width;
+          const fy = lm.y * height;
+          ctx.beginPath();
+          ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(96, 165, 250, 0.5)";
+          ctx.fill();
+        }
+
+        // Key face points with bigger dots: nose, eyes, mouth corners, chin, forehead
+        const keyPoints = [1, 4, 5, 6, 10, 152, 33, 263, 61, 291, 234, 454, 93, 323, 168, 8];
+        for (const idx of keyPoints) {
+          if (idx < headPose.faceLandmarks.length) {
+            const lm = headPose.faceLandmarks[idx];
+            const fx = lm.x * width;
+            const fy = lm.y * height;
+            ctx.beginPath();
+            ctx.arc(fx, fy, 3, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(147, 197, 253, 0.8)";
+            ctx.fill();
+          }
+        }
+      }
+
+      // Nose tip highlight
       const hx = headPose.x * width;
       const hy = headPose.y * height;
-
-      // Outer glow
-      const gradient = ctx.createRadialGradient(hx, hy, 0, hx, hy, 18);
+      const gradient = ctx.createRadialGradient(hx, hy, 0, hx, hy, 14);
       gradient.addColorStop(0, "rgba(59, 130, 246, 0.9)");
       gradient.addColorStop(0.5, "rgba(59, 130, 246, 0.3)");
       gradient.addColorStop(1, "rgba(59, 130, 246, 0)");
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(hx, hy, 18, 0, Math.PI * 2);
+      ctx.arc(hx, hy, 14, 0, Math.PI * 2);
       ctx.fill();
 
-      // Inner dot
       ctx.beginPath();
-      ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+      ctx.arc(hx, hy, 4, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(96, 165, 250, 1)";
       ctx.fill();
-
-      // Ring
-      ctx.beginPath();
-      ctx.arc(hx, hy, 10, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(147, 197, 253, 0.7)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
     }
   }, [hands, wandTrail, width, height, headPose]);
 
