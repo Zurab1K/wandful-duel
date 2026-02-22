@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -11,56 +11,79 @@ interface CharacterPreviewProps {
 
 function SoldierModel({ robeColor, accentColor }: CharacterPreviewProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const gltf = useLoader(GLTFLoader, "/models/Soldier.glb");
 
+  // Set up animation mixer and play idle animation
+  useEffect(() => {
+    if (!gltf.scene || !gltf.animations.length) return;
+
+    const mixer = new THREE.AnimationMixer(gltf.scene);
+    mixerRef.current = mixer;
+
+    // Find an idle animation, or use the first one
+    const idleClip =
+      gltf.animations.find((a) => /idle/i.test(a.name)) ||
+      gltf.animations[0];
+
+    if (idleClip) {
+      const action = mixer.clipAction(idleClip);
+      action.play();
+    }
+
+    return () => {
+      mixer.stopAllAction();
+    };
+  }, [gltf]);
+
+  // Recolor materials based on house
   useEffect(() => {
     if (!gltf.scene) return;
 
-    // Traverse the model and recolor clothing materials
     gltf.scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        const material = mesh.material as THREE.MeshStandardMaterial;
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 
-        if (material && material.isMeshStandardMaterial) {
-          // Clone material so we don't mutate shared references
-          const mat = material.clone();
+        materials.forEach((material, idx) => {
+          if (material && (material as THREE.MeshStandardMaterial).isMeshStandardMaterial) {
+            const mat = material.clone() as THREE.MeshStandardMaterial;
+            const r = mat.color.r;
+            const g = mat.color.g;
+            const b = mat.color.b;
 
-          // The Soldier model has a few materials - color the main outfit
-          // Check the original color to decide what to recolor
-          const origColor = material.color;
-          const r = origColor.r;
-          const g = origColor.g;
-          const b = origColor.b;
+            // Dark materials → robe color
+            if (r < 0.3 && g < 0.3 && b < 0.3) {
+              mat.color.set(robeColor);
+              mat.roughness = 0.8;
+            }
+            // Medium gray → accent
+            else if (r > 0.3 && r < 0.7 && Math.abs(r - g) < 0.15 && Math.abs(r - b) < 0.15) {
+              mat.color.set(accentColor);
+              mat.roughness = 0.7;
+            }
 
-          // Dark/black materials → robe color (main outfit)
-          if (r < 0.3 && g < 0.3 && b < 0.3) {
-            mat.color.set(robeColor);
-            mat.roughness = 0.8;
+            if (Array.isArray(mesh.material)) {
+              mesh.material[idx] = mat;
+            } else {
+              mesh.material = mat;
+            }
           }
-          // Medium gray materials → accent
-          else if (r > 0.3 && r < 0.7 && Math.abs(r - g) < 0.15 && Math.abs(r - b) < 0.15) {
-            mat.color.set(accentColor);
-            mat.roughness = 0.7;
-          }
-          // Skin-like materials → keep original
-          // Everything else → slight tint
-
-          mesh.material = mat;
-        }
+        });
       }
     });
   }, [gltf, robeColor, accentColor]);
 
-  // Gentle idle bob
-  useFrame(({ clock }) => {
+  // Update animation mixer + gentle bob
+  useFrame((_, delta) => {
+    mixerRef.current?.update(delta);
     if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 1.2) * 0.02;
+      groupRef.current.position.y = -0.92 + Math.sin(Date.now() * 0.0012) * 0.01;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, -0.9, 0]} scale={0.5}>
+    <group ref={groupRef} position={[0, -0.92, 0]} scale={0.5}>
       <primitive object={gltf.scene} />
     </group>
   );
@@ -88,7 +111,7 @@ function CharacterScene({ robeColor, accentColor }: CharacterPreviewProps) {
         enableZoom={false}
         minPolarAngle={Math.PI * 0.3}
         maxPolarAngle={Math.PI * 0.6}
-        target={[0, 0.2, 0]}
+        target={[0, 0.0, 0]}
         autoRotate
         autoRotateSpeed={1.5}
       />
@@ -103,7 +126,7 @@ export default function CharacterPreview3D({ robeColor, accentColor }: Character
       style={{ background: "radial-gradient(ellipse at center, #1a1510 0%, #0a0808 100%)" }}
     >
       <Canvas
-        camera={{ position: [0, 0.2, 2.5], fov: 40 }}
+        camera={{ position: [0, 0.1, 2.8], fov: 38 }}
         gl={{ antialias: true, alpha: false }}
       >
         <CharacterScene robeColor={robeColor} accentColor={accentColor} />
