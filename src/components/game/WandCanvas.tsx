@@ -1,14 +1,15 @@
 import { useRef, useEffect } from "react";
-import type { HandData } from "@/hooks/useHandTracking";
+import type { HandData, HeadPose } from "@/hooks/useHandTracking";
 
 interface WandCanvasProps {
   hands: HandData[];
   wandTrail: Array<{ x: number; y: number; t: number }>;
   width: number;
   height: number;
+  headPose?: HeadPose | null;
 }
 
-export default function WandCanvas({ hands, wandTrail, width, height }: WandCanvasProps) {
+export default function WandCanvas({ hands, wandTrail, width, height, headPose }: WandCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -36,12 +37,10 @@ export default function WandCanvas({ hands, wandTrail, width, height }: WandCanv
         ctx.moveTo(wandTrail[i - 1].x * width, wandTrail[i - 1].y * height);
         ctx.lineTo(wandTrail[i].x * width, wandTrail[i].y * height);
 
-        // Golden glow trail
         ctx.strokeStyle = `rgba(234, 179, 8, ${alpha})`;
         ctx.lineWidth = lineWidth;
         ctx.stroke();
 
-        // Outer glow
         ctx.strokeStyle = `rgba(234, 179, 8, ${alpha * 0.3})`;
         ctx.lineWidth = lineWidth * 3;
         ctx.stroke();
@@ -53,7 +52,6 @@ export default function WandCanvas({ hands, wandTrail, width, height }: WandCanv
       const lm = hand.landmarks;
       if (!lm || lm.length < 21) continue;
 
-      // Draw connections
       const connections = [
         [0, 1], [1, 2], [2, 3], [3, 4],
         [0, 5], [5, 6], [6, 7], [7, 8],
@@ -72,7 +70,6 @@ export default function WandCanvas({ hands, wandTrail, width, height }: WandCanv
         ctx.stroke();
       }
 
-      // Draw landmarks
       for (let i = 0; i < lm.length; i++) {
         const x = lm[i].x * width;
         const y = lm[i].y * height;
@@ -82,7 +79,6 @@ export default function WandCanvas({ hands, wandTrail, width, height }: WandCanv
         ctx.fill();
       }
 
-      // Wand tip glow
       if (hand.wandTip) {
         const wx = hand.wandTip.x * width;
         const wy = hand.wandTip.y * height;
@@ -96,7 +92,36 @@ export default function WandCanvas({ hands, wandTrail, width, height }: WandCanv
         ctx.fill();
       }
     }
-  }, [hands, wandTrail, width, height]);
+
+    // Draw head pose indicator
+    if (headPose) {
+      const hx = headPose.x * width;
+      const hy = headPose.y * height;
+
+      // Outer glow
+      const gradient = ctx.createRadialGradient(hx, hy, 0, hx, hy, 18);
+      gradient.addColorStop(0, "rgba(59, 130, 246, 0.9)");
+      gradient.addColorStop(0.5, "rgba(59, 130, 246, 0.3)");
+      gradient.addColorStop(1, "rgba(59, 130, 246, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner dot
+      ctx.beginPath();
+      ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(96, 165, 250, 1)";
+      ctx.fill();
+
+      // Ring
+      ctx.beginPath();
+      ctx.arc(hx, hy, 10, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(147, 197, 253, 0.7)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }, [hands, wandTrail, width, height, headPose]);
 
   return (
     <canvas
