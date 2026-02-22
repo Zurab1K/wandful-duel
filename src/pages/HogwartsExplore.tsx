@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import * as THREE from "three";
 import { useHandTracking } from "@/hooks/useHandTracking";
 import { ROOMS, getRoomById, type RoomDef } from "@/lib/hogwartsRooms";
@@ -21,6 +21,9 @@ const NPC_ENCOUNTER_DIST = 2.5;
 
 export default function HogwartsExplore() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const houseColor = searchParams.get("color") || "#740001";
+  const houseName = searchParams.get("house") || "Gryffindor";
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentRoomId, setCurrentRoomId] = useState("great-hall");
   const currentRoom = getRoomById(currentRoomId) || ROOMS[0];
@@ -345,6 +348,7 @@ export default function HogwartsExplore() {
           spellActive={spellActive}
           spellColor={activeSpellColor}
           shieldActive={gameState.shieldActive}
+          houseColor={houseColor}
         />
       )}
 
