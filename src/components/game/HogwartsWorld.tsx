@@ -298,18 +298,69 @@ function CameraController({
     const dx = Math.sin(playerRot.current) * fwd * speed * delta;
     const dz = Math.cos(playerRot.current) * fwd * speed * delta;
 
-    const newX = playerPos.current.x + dx;
-    const newZ = playerPos.current.z + dz;
+    let newX = playerPos.current.x + dx;
+    let newZ = playerPos.current.z + dz;
 
     // Simple bounds check (stay within room)
     const [cx, , cz] = currentRoom.center;
     const [hw, , hd] = currentRoom.size;
     const margin = 0.8;
 
-    const clampedX = Math.max(cx - hw + margin, Math.min(cx + hw - margin, newX));
-    const clampedZ = Math.max(cz - hd + margin, Math.min(cz + hd - margin, newZ));
+    newX = Math.max(cx - hw + margin, Math.min(cx + hw - margin, newX));
+    newZ = Math.max(cz - hd + margin, Math.min(cz + hd - margin, newZ));
 
-    playerPos.current.set(clampedX, 1.6, clampedZ);
+    // Collision with props (tables, shelves, etc.)
+    const playerRadius = 0.5;
+    for (const prop of currentRoom.props) {
+      const px = prop.position[0] + cx;
+      const pz = prop.position[2] + cz;
+      let halfW: number, halfD: number;
+      if (prop.type === "box") {
+        halfW = prop.size[0] / 2 + playerRadius;
+        halfD = prop.size[2] / 2 + playerRadius;
+      } else {
+        halfW = prop.size[0] + playerRadius;
+        halfD = prop.size[0] + playerRadius;
+      }
+      // AABB collision
+      if (newX > px - halfW && newX < px + halfW && newZ > pz - halfD && newZ < pz + halfD) {
+        // Push out on the axis with smallest overlap
+        const overlapLeft = newX - (px - halfW);
+        const overlapRight = (px + halfW) - newX;
+        const overlapFront = newZ - (pz - halfD);
+        const overlapBack = (pz + halfD) - newZ;
+        const minOverlap = Math.min(overlapLeft, overlapRight, overlapFront, overlapBack);
+        if (minOverlap === overlapLeft) newX = px - halfW;
+        else if (minOverlap === overlapRight) newX = px + halfW;
+        else if (minOverlap === overlapFront) newZ = pz - halfD;
+        else newZ = pz + halfD;
+      }
+    }
+
+    // Great Hall dining tables (rendered by GreatHallScene, not in props)
+    if (currentRoom.id === "great-hall") {
+      const tableXPositions = [-7, -3, 3, 7];
+      const tableZ = cx + 2; // table center z offset
+      const tableHalfW = 1.55 + playerRadius; // table + bench width
+      const tableHalfD = 14 + playerRadius; // half length
+      for (const tx of tableXPositions) {
+        const wx = tx + cx;
+        const wz = tableZ;
+        if (newX > wx - tableHalfW && newX < wx + tableHalfW && newZ > wz - tableHalfD && newZ < wz + tableHalfD) {
+          const oL = newX - (wx - tableHalfW);
+          const oR = (wx + tableHalfW) - newX;
+          const oF = newZ - (wz - tableHalfD);
+          const oB = (wz + tableHalfD) - newZ;
+          const m = Math.min(oL, oR, oF, oB);
+          if (m === oL) newX = wx - tableHalfW;
+          else if (m === oR) newX = wx + tableHalfW;
+          else if (m === oF) newZ = wz - tableHalfD;
+          else newZ = wz + tableHalfD;
+        }
+      }
+    }
+
+    playerPos.current.set(newX, 1.6, newZ);
 
     // Check door proximity
     for (let i = 0; i < currentRoom.doors.length; i++) {
