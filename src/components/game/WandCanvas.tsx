@@ -93,21 +93,36 @@ export default function WandCanvas({ hands, wandTrail, width, height, headPose }
       }
     }
 
-    // Draw head pose indicator — spatially thinned for even distribution
-    if (headPose && headPose.faceLandmarks) {
-      const gridSize = 0.03; // larger cells = fewer, evenly spaced dots
-      const occupied = new Set<string>();
-      for (const lm of headPose.faceLandmarks) {
-        const cellKey = `${Math.floor(lm.x / gridSize)},${Math.floor(lm.y / gridSize)}`;
-        if (occupied.has(cellKey)) continue;
-        occupied.add(cellKey);
-        const fx = lm.x * width;
-        const fy = lm.y * height;
-        ctx.beginPath();
-        ctx.arc(fx, fy, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
-        ctx.fill();
+    // Draw head pose indicator
+    if (headPose) {
+      if (headPose.faceLandmarks) {
+        for (let i = 0; i < headPose.faceLandmarks.length; i += 3) {
+          const lm = headPose.faceLandmarks[i];
+          const fx = lm.x * width;
+          const fy = lm.y * height;
+          ctx.beginPath();
+          ctx.arc(fx, fy, 2, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
+          ctx.fill();
+        }
       }
+
+      // Nose tip glow
+      const hx = headPose.x * width;
+      const hy = headPose.y * height;
+      const gradient = ctx.createRadialGradient(hx, hy, 0, hx, hy, 14);
+      gradient.addColorStop(0, "rgba(34, 197, 94, 0.9)");
+      gradient.addColorStop(0.5, "rgba(34, 197, 94, 0.3)");
+      gradient.addColorStop(1, "rgba(34, 197, 94, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(hx, hy, 2, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(34, 197, 94, 1)";
+      ctx.fill();
     }
   }, [hands, wandTrail, width, height, headPose]);
 

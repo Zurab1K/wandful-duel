@@ -93,34 +93,37 @@ export default function HogwartsExplore() {
     const dy = headPose.y - cy; // positive = leaning down/forward
 
     // Deadzones
-    const FORWARD_DEAD = 0.015;
-    const TURN_DEAD = 0.02;
+    const FORWARD_DEAD = 0.03;
+    const TURN_DEAD = 0.04;
 
-    // Y axis: leaning back = walk forward, leaning forward = backward
+    // Y axis: leaning back (head goes up = lower y) = walk forward, leaning forward = backward
     let rawForward = 0;
-    if (dy > FORWARD_DEAD) rawForward = Math.min(1, (dy - FORWARD_DEAD) * 10);
-    else if (dy < -FORWARD_DEAD) rawForward = Math.max(-1, -(-dy - FORWARD_DEAD) * 10);
+    if (dy > FORWARD_DEAD) rawForward = Math.min(1, (dy - FORWARD_DEAD) * 8);
+    else if (dy < -FORWARD_DEAD) rawForward = Math.max(-1, -(-dy - FORWARD_DEAD) * 8);
 
     // X axis: invert turn direction
     let rawTurn = 0;
-    if (dx > TURN_DEAD) rawTurn = Math.max(-1, -(dx - TURN_DEAD) * 7);
-    else if (dx < -TURN_DEAD) rawTurn = Math.min(1, (-dx - TURN_DEAD) * 7);
+    if (dx > TURN_DEAD) rawTurn = Math.max(-1, -(dx - TURN_DEAD) * 6);
+    else if (dx < -TURN_DEAD) rawTurn = Math.min(1, (-dx - TURN_DEAD) * 6);
 
-    // Heavy smoothing for gradual, controlled movement
-    const smoothAlpha = 0.08;
+    // Quadratic for finer control
+    rawForward = Math.sign(rawForward) * rawForward * rawForward;
+    rawTurn = Math.sign(rawTurn) * rawTurn * rawTurn;
+
+    // Smooth
     if (rawForward === 0) {
-      smoothedInput.current.forward *= 0.85; // slow decay
+      smoothedInput.current.forward *= 0.7; // decay
     } else {
-      smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * smoothAlpha;
+      smoothedInput.current.forward += (rawForward - smoothedInput.current.forward) * 0.2;
     }
     if (rawTurn === 0) {
-      smoothedInput.current.turn *= 0.85;
+      smoothedInput.current.turn *= 0.7;
     } else {
-      smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * smoothAlpha;
+      smoothedInput.current.turn += (rawTurn - smoothedInput.current.turn) * 0.2;
     }
 
-    if (Math.abs(smoothedInput.current.forward) < 0.01) smoothedInput.current.forward = 0;
-    if (Math.abs(smoothedInput.current.turn) < 0.01) smoothedInput.current.turn = 0;
+    if (Math.abs(smoothedInput.current.forward) < 0.02) smoothedInput.current.forward = 0;
+    if (Math.abs(smoothedInput.current.turn) < 0.02) smoothedInput.current.turn = 0;
 
     moveInput.current = {
       forward: smoothedInput.current.forward,
