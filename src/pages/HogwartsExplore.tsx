@@ -55,24 +55,35 @@ export default function HogwartsExplore() {
 
   // ─── Left hand → movement input ───────────────────
   useEffect(() => {
-    if (!navHand?.wandTip || !isTracking) {
+    if (!navHand?.landmarks || !isTracking) {
       moveInput.current = { forward: 0, turn: 0, sprint: false };
       return;
     }
 
-    const hx = navHand.wandTip.x; // 0-1, center=0.5
-    const hy = navHand.wandTip.y; // 0-1, center=0.5
+    // Use wrist position (landmark 0) instead of finger tip — 
+    // it's stable even during fist/open palm gestures
+    const wrist = navHand.landmarks[0];
+    if (!wrist) {
+      moveInput.current = { forward: 0, turn: 0, sprint: false };
+      return;
+    }
 
-    // Y axis: hand up = move forward, hand down = move backward
-    // Deadzone around center (0.35-0.65)
+    const hx = wrist.x; // 0–1
+    const hy = wrist.y; // 0–1
+
+    // Smaller deadzone (0.4–0.6) for more responsive movement
+    const DEAD_LO = 0.4;
+    const DEAD_HI = 0.6;
+
+    // Y axis: hand up (low y) = forward, hand down (high y) = backward
     let forward = 0;
-    if (hy < 0.35) forward = (0.35 - hy) / 0.35; // up = forward
-    else if (hy > 0.65) forward = -(hy - 0.65) / 0.35; // down = backward
+    if (hy < DEAD_LO) forward = (DEAD_LO - hy) / DEAD_LO;       // up → forward (0 to 1)
+    else if (hy > DEAD_HI) forward = -(hy - DEAD_HI) / (1 - DEAD_HI); // down → backward (0 to -1)
 
-    // X axis: hand left = turn left, hand right = turn right
+    // X axis: hand left (low x) = turn left, hand right (high x) = turn right
     let turn = 0;
-    if (hx < 0.35) turn = (0.35 - hx) / 0.35; // left
-    else if (hx > 0.65) turn = -(hx - 0.65) / 0.35; // right (inverted for mirror)
+    if (hx < DEAD_LO) turn = (DEAD_LO - hx) / DEAD_LO;
+    else if (hx > DEAD_HI) turn = -(hx - DEAD_HI) / (1 - DEAD_HI);
 
     const sprint = navHand.gesture === "fist";
 

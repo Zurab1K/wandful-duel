@@ -275,8 +275,8 @@ function CameraController({
 
   useFrame((_, delta) => {
     const input = moveInput.current;
-    const speed = input.sprint ? 6 : 3;
-    const turnSpeed = input.sprint ? 2.5 : 1.8;
+    const speed = input.sprint ? 10 : 5;
+    const turnSpeed = input.sprint ? 3 : 2.2;
 
     // Turn
     playerRot.current -= input.turn * turnSpeed * delta;
