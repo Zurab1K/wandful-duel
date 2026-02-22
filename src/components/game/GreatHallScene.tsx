@@ -721,7 +721,7 @@ export default function GreatHallScene() {
         const z = -hd + 5.5 + i * 5;
         return (
           <group key={`windows-${i}`}>
-            <NightSkyWindow position={[-hw + 0.1, 5, z]} facing="east" showMoon={i === 3} seed={i} />
+            <NightSkyWindow position={[-hw + 0.1, 5, z]} facing="east" showMoon={false} seed={i} />
             <NightSkyWindow position={[hw - 0.1, 5, z]} facing="west" showMoon={false} seed={i + 10} />
           </group>
         );
