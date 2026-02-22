@@ -650,11 +650,31 @@ export default function GreatHallScene() {
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
         <meshStandardMaterial color="#8a7a68" roughness={0.92} />
       </mesh>
-      {/* South wall (entrance) */}
+      {/* South wall (entrance) — base */}
       <mesh position={[0, wallH / 2, hd]}>
         <boxGeometry args={[hw * 2, wallH, 0.4]} />
-        <meshStandardMaterial color="#8a7a68" roughness={0.92} />
+        <meshStandardMaterial color="#7a6a58" roughness={0.95} />
       </mesh>
+      {/* South wall stone blocks — individual blocks on inner face */}
+      {Array.from({ length: 10 }, (_, row) => {
+        const y = 0.4 + row * 0.95;
+        const offset = row % 2 === 0 ? 0 : 1;
+        const blockW = 2;
+        const numBlocks = Math.ceil((hw * 2) / blockW) + 1;
+        return Array.from({ length: numBlocks }, (_, col) => {
+          const x = -hw + offset + col * blockW;
+          if (x < -hw - 1 || x > hw + 1) return null;
+          // Slight random shade variation per block
+          const shade = ((row * 7 + col * 13) % 5);
+          const colors = ["#8a7a68", "#7e7060", "#857565", "#6e6050", "#8a7a6a"];
+          return (
+            <mesh key={`sb-${row}-${col}`} position={[x, y, hd - 0.22]}>
+              <boxGeometry args={[blockW - 0.06, 0.9, 0.05]} />
+              <meshStandardMaterial color={colors[shade]} roughness={0.95} />
+            </mesh>
+          );
+        });
+      })}
       {/* West wall */}
       <mesh position={[-hw, wallH / 2, 0]}>
         <boxGeometry args={[0.4, wallH, hd * 2]} />
