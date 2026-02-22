@@ -96,15 +96,15 @@ export default function HogwartsExplore() {
     const FORWARD_DEAD = 0.03;
     const TURN_DEAD = 0.04;
 
-    // Y axis: leaning forward (head goes up in camera = lower y) = walk forward
+    // Y axis: leaning back (head goes up = lower y) = walk forward, leaning forward = backward
     let rawForward = 0;
-    if (dy < -FORWARD_DEAD) rawForward = Math.min(1, (-dy - FORWARD_DEAD) * 8);
-    else if (dy > FORWARD_DEAD) rawForward = Math.max(-1, -(dy - FORWARD_DEAD) * 8);
+    if (dy > FORWARD_DEAD) rawForward = Math.min(1, (dy - FORWARD_DEAD) * 8);
+    else if (dy < -FORWARD_DEAD) rawForward = Math.max(-1, -(-dy - FORWARD_DEAD) * 8);
 
-    // X axis: leaning left/right = turn (camera is mirrored, so left lean = higher x)
+    // X axis: invert turn direction
     let rawTurn = 0;
-    if (dx > TURN_DEAD) rawTurn = Math.min(1, (dx - TURN_DEAD) * 6);
-    else if (dx < -TURN_DEAD) rawTurn = Math.max(-1, (dx + TURN_DEAD) * 6);
+    if (dx > TURN_DEAD) rawTurn = Math.max(-1, -(dx - TURN_DEAD) * 6);
+    else if (dx < -TURN_DEAD) rawTurn = Math.min(1, (-dx - TURN_DEAD) * 6);
 
     // Quadratic for finer control
     rawForward = Math.sign(rawForward) * rawForward * rawForward;
@@ -440,7 +440,7 @@ export default function HogwartsExplore() {
           muted
         />
         {isTracking && (
-          <WandCanvas hands={hands} wandTrail={wandTrail} width={WEBCAM_W} height={WEBCAM_H} />
+          <WandCanvas hands={hands} wandTrail={wandTrail} width={WEBCAM_W} height={WEBCAM_H} headPose={headPose} />
         )}
       </div>
 
