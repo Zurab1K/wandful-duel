@@ -284,13 +284,13 @@ function CameraController({
     const targetTrn = Math.abs(input.turn) < 0.05 ? 0 : input.turn;
 
     // Smooth velocity lerp — fast direction changes, gentle stops
-    const accel = 0.25;
-    const decel = 0.12;
-    // When changing direction (sign flip), use accel rate for snappy response
+    const accel = 0.15;
+    const decel = 0.15;
+    // When changing direction (sign flip), use same rate
     const fwdChangingDir = targetFwd * velocityRef.current.fwd < 0;
     const trnChangingDir = targetTrn * velocityRef.current.trn < 0;
-    const fwdAlpha = fwdChangingDir ? 0.35 : (Math.abs(targetFwd) > Math.abs(velocityRef.current.fwd) ? accel : decel);
-    const trnAlpha = trnChangingDir ? 0.35 : (Math.abs(targetTrn) > Math.abs(velocityRef.current.trn) ? accel : decel);
+    const fwdAlpha = fwdChangingDir ? 0.15 : accel;
+    const trnAlpha = trnChangingDir ? 0.15 : accel;
     velocityRef.current.fwd += (targetFwd - velocityRef.current.fwd) * fwdAlpha;
     velocityRef.current.trn += (targetTrn - velocityRef.current.trn) * trnAlpha;
 
